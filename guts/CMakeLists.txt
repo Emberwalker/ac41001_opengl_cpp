@@ -1,7 +1,11 @@
 set(GUTS_H
-        guts/wrapper_glfw.h guts/guts.h guts/init.h)
+        guts/guts.h guts/init.h
+        guts/glfw_window.h
+        guts/gl_program_builder.h)
 set(GUTS_CPP
-        guts/wrapper_glfw.cpp guts/init.cc)
+        guts/init.cc
+        guts/glfw_window.cc
+        guts/gl_program_builder.cc)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(guts
