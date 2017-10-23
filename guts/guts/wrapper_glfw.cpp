@@ -29,14 +29,19 @@ GLWrapper::GLWrapper(int width, int height, char *title) {
     this->running = true;
 
     /* Initialise GLFW and exit if it fails */
-    if (!glfwInit()) {
+    if (glfwInit() != GLFW_TRUE) {
         cout << "Failed to initialize GLFW." << endl;
         exit(EXIT_FAILURE);
     }
 
+    glfwSetErrorCallback([](int errCode, const char* description) {
+        cout << "GLFW error " << errCode << ": " << description << endl;
+    });
+
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef DEBUG
     glfwOpenWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
