@@ -36,7 +36,9 @@ foreach (_LIB ${OTHER_LIBS})
     set(REL_DBG_LIBS ${REL_DBG_LIBS} debug "${_LIB}D" optimized ${_LIB})
 endforeach ()
 set(NO_ADD_LIB_PATH FALSE)
+
 if (APPLE)
+    # macOS/iOS/watchOS - but we only really care about macOS
     set(LIB_PATH darwin)
     # Add GLFW3 required frameworks. See http://www.glfw.org/docs/latest/build_guide.html#build_link_osx
     set(MACOS_FRAMEWORK_NAMES Cocoa IOKit CoreVideo)
@@ -48,19 +50,20 @@ if (APPLE)
         message(FATAL_ERROR "Use Clang on macOS devices!")
     endif ()
 elseif (WIN32)
+    set(ADDITIONAL_LIBRARIES ${REL_DBG_LIBS} ${ADDITIONAL_LIBRARIES})
     if (MSYS OR MINGW)
         # UNIX-y in MSYS/MinGW
-        set(ADDITIONAL_LIBRARIES ${REL_DBG_LIBS} ${ADDITIONAL_LIBRARIES})
         set(LIB_PATH mingw)
     else ()
         # Windows-style in MSVC
-        set(ADDITIONAL_LIBRARIES ${REL_DBG_LIBS} ${ADDITIONAL_LIBRARIES})
         set(LIB_PATH win)
     endif ()
 elseif (UNIX)
-    # Probably Linux?
-    set(LIB_PATH linux)
-    set(ADDITIONAL_LIBRARIES ${REL_DBG_LIBS} ${ADDITIONAL_LIBRARIES})
+    # Probably Linux? Assume it is. We're not mad enough to try and support Sun et al.
+    #set(LIB_PATH linux)
+    #set(ADDITIONAL_LIBRARIES ${OTHER_LIBS} ${ADDITIONAL_LIBRARIES})
+    # TODO: Compile linux32/64 libs. Until then, use system libs.
+    SET(NO_ADD_LIB_PATH TRUE)
 else ()
     message(WARNING "OS detection failed. This may not work well...")
     set(ADDITIONAL_LIBRARIES ${OTHER_LIBS} ${ADDITIONAL_LIBRARIES})
@@ -78,6 +81,7 @@ if (CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "AMD64" OR CMAKE_HOST_SYSTEM_PROCESSOR M
     endif ()
 else ()
     message(STATUS "Non-64-bit CPU detected; assuming 32-bit executables.")
+    message(WARNING "32-bit building isn't very well tested. Here be dragons.")
 endif ()
 
 # Libraries
@@ -88,9 +92,10 @@ if (NOT NO_ADD_LIB_PATH)
         set(LIB_PATH ${LIB_PATH}32)
     endif ()
     link_directories(lib/${LIB_PATH})
+    # Add the include dir here, since no lib path means the system might have its own appropriate headers for its libs.
+    include_directories(include)
 endif ()
 
-include_directories(include)
 
 # Gl UTilitieS
 include_directories("${PROJECT_SOURCE_DIR}/guts")
