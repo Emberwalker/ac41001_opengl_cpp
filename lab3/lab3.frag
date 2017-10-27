@@ -1,6 +1,6 @@
 // Minimal fragment shader
 
-#version 420
+#version 410 core
 
 in vec4 fcolour;
 out vec4 outputColor;

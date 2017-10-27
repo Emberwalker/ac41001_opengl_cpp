@@ -1,6 +1,6 @@
 // Minimal vertex shader
 
-#version 420
+#version 410 core
 
 // These are the vertex attributes
 layout(location = 0) in vec3 position;
