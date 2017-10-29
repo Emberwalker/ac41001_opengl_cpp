@@ -1,9 +1,6 @@
 #ifndef GUTS_GL_OBJECT_H
 #define GUTS_GL_OBJECT_H
 
-#include <glload/gl_4_1.hpp>
-#include <glm/glm.hpp>
-
 namespace guts {
 
 enum GLRenderMode {
@@ -17,7 +14,6 @@ namespace objs {
 class GLObject {
 
  public:
-  //virtual ~GLObject() = 0;
   virtual void Render(GLRenderMode mode) = 0;
 
 };

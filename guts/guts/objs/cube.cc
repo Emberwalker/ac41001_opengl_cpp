@@ -1,7 +1,8 @@
 #include "cube.h"
 
-#include <glload/gl_4_1.hpp>
-#include <glm/glm.hpp>
+#include "guts/internal/render.h"
+#include "guts/internal/buffers.h"
+#include <array>
 
 namespace guts {
 namespace objs {
@@ -122,22 +123,16 @@ Cube::Cube(GLuint attr_vertices, GLuint attr_colours, GLuint attr_normals) {
   this->attr_colours = attr_colours;
   this->attr_normals = attr_normals;
 
-  std::copy(TMPL_VERTICES.begin(), TMPL_VERTICES.end(), std::begin(this->vertices));
-  std::copy(TMPL_COLOURS.begin(), TMPL_COLOURS.end(), std::begin(this->colours));
-  std::copy(TMPL_NORMALS.begin(), TMPL_NORMALS.end(), std::begin(this->normals));
+  std::copy(TMPL_VERTICES.begin(), TMPL_VERTICES.end(),
+            std::begin(this->vertices));
+  std::copy(TMPL_COLOURS.begin(), TMPL_COLOURS.end(),
+            std::begin(this->colours));
+  std::copy(TMPL_NORMALS.begin(), TMPL_NORMALS.end(),
+            std::begin(this->normals));
 
-  this->vbo = GenBuffer(this->vertices, sizeof(this->vertices));
-  this->cbo = GenBuffer(this->colours, sizeof(this->colours));
-  this->nbo = GenBuffer(this->normals, sizeof(this->normals));
-}
-
-GLuint Cube::GenBuffer(GLfloat *contents, GLsizei size) {
-  GLuint buffer;
-  gl::GenBuffers(1, &buffer);
-  gl::BindBuffer(gl::ARRAY_BUFFER, buffer);
-  gl::BufferData(gl::ARRAY_BUFFER, size, contents, gl::STATIC_DRAW);
-  gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-  return buffer;
+  this->vbo = guts::internal::GenBuffer(this->vertices, sizeof(this->vertices));
+  this->cbo = guts::internal::GenBuffer(this->colours, sizeof(this->colours));
+  this->nbo = guts::internal::GenBuffer(this->normals, sizeof(this->normals));
 }
 
 Cube::~Cube() {
@@ -147,31 +142,9 @@ Cube::~Cube() {
 }
 
 void Cube::Render(GLRenderMode mode) {
-  gl::BindBuffer(gl::ARRAY_BUFFER, this->vbo);
-  gl::EnableVertexAttribArray(this->attr_vertices);
-  gl::VertexAttribPointer(this->attr_vertices, 3, gl::FLOAT, gl::FALSE_, 0, nullptr);
-
-  gl::BindBuffer(gl::ARRAY_BUFFER, this->cbo);
-  gl::EnableVertexAttribArray(this->attr_colours);
-  gl::VertexAttribPointer(this->attr_colours, 4, gl::FLOAT, gl::FALSE_, 0, nullptr);
-
-  gl::BindBuffer(gl::ARRAY_BUFFER, this->nbo);
-  gl::EnableVertexAttribArray(this->attr_normals);
-  gl::VertexAttribPointer(this->attr_normals, 3, gl::FLOAT, gl::FALSE_, 0, nullptr);
-
-  gl::PointSize(3.f);
-
-  if (mode == RENDER_WIREFRAME) {
-    gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-  } else {
-    gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
-  }
-
-  if (mode == RENDER_POINTS) {
-    gl::DrawArrays(gl::POINTS, 0, 108);
-  } else {
-    gl::DrawArrays(gl::TRIANGLES, 0, 108);
-  }
+  guts::internal::RenderBasicObject(mode, 36, this->vbo, this->attr_vertices,
+                                    this->cbo, this->attr_colours,
+                                    this->nbo, this->attr_normals);
 }
 
 } // namespace objs

@@ -3,13 +3,13 @@ set(GUTS_H
         guts/glfw_window.h
         guts/gl_program_builder.h
         guts/gl_object.h
-        guts/objs/cube.h)
+        guts/objs/cube.h
+        guts/internal/render.h guts/objs/sphere.h guts/internal/buffers.h)
 set(GUTS_CPP
         guts/init.cc
         guts/glfw_window.cc
         guts/gl_program_builder.cc
-        guts/gl_object.cc
-        guts/objs/cube.cc)
+        guts/objs/cube.cc guts/objs/sphere.cc)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(guts

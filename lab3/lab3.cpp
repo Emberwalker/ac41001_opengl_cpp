@@ -26,6 +26,7 @@ also includes the OpenGL extension initialisation*/
 // Include headers for our objects
 //#include "sphere.h"
 #include <guts/objs/cube.h>
+#include <guts/objs/sphere.h>
 
 GLuint program;        /* Identifier for the shader program */
 GLuint vao;            /* Vertex array (Container) object. This is the index of the VAO that will be the container for
@@ -49,7 +50,7 @@ GLfloat aspect_ratio;        /* Aspect ratio of the window defined in the reshap
 GLuint numspherevertices;
 
 /* Global instances of our objects */
-//Sphere aSphere;
+std::unique_ptr<guts::objs::Sphere> aSphere;
 std::unique_ptr<guts::objs::Cube> aCube;
 
 using namespace std;
@@ -97,8 +98,9 @@ void init(guts::GlfwWindow *glw) {
   projectionID = gl::GetUniformLocation(program, "projection");
 
   /* create our sphere and cube objects */
-  //aSphere.makeSphere(numlats, numlongs);
   aCube = std::unique_ptr<guts::objs::Cube>(new guts::objs::Cube);
+  aSphere = std::unique_ptr<guts::objs::Sphere>(
+      new guts::objs::Sphere(numlats,numlongs));
 }
 
 /* Called to update the display. Note that this function is called in the event loop in the wrapper
@@ -171,7 +173,7 @@ void display(guts::GlfwWindow *window) {
     gl::UniformMatrix4fv(modelID, 1, gl::FALSE_, &(model.top()[0][0]));
 
     /* Draw our sphere */
-    //aSphere.drawSphere(drawmode);
+    aSphere->Render(drawmode);
   }
   model.pop();
 
