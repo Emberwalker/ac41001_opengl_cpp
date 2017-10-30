@@ -105,3 +105,4 @@ set(ADDITIONAL_LIBRARIES guts ${ADDITIONAL_LIBRARIES})
 # Programs!
 add_subdirectory(lab1)
 add_subdirectory(lab3)
+add_subdirectory(lab4)

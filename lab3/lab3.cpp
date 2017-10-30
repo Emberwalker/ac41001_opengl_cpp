@@ -48,7 +48,6 @@ GLint modelID, viewID, projectionID, nMatrixID;
 GLint colourmodeID;
 
 GLfloat aspect_ratio;        /* Aspect ratio of the window defined in the reshape callback*/
-GLuint numspherevertices;
 
 /* Global instances of our objects */
 std::unique_ptr<guts::objs::Sphere> aSphere;
@@ -164,7 +163,7 @@ void display(guts::GlfwWindow *window) {
     gl::UniformMatrix3fv(nMatrixID, 1, gl::FALSE_, &n_matrix[0][0]);
 
     /* Draw our cube*/
-    aCube->Render(drawmode);
+    aCube->Render(reinterpret_cast<guts::GLRenderMode>(drawmode));
   }
   model.pop();
 
@@ -180,7 +179,7 @@ void display(guts::GlfwWindow *window) {
     gl::UniformMatrix3fv(nMatrixID, 1, gl::FALSE_, &n_matrix[0][0]);
 
     /* Draw our sphere */
-    aSphere->Render(drawmode);
+    aSphere->Render(reinterpret_cast<guts::GLRenderMode>(drawmode));
   }
   model.pop();
 
