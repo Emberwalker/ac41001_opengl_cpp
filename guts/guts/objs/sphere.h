@@ -11,13 +11,14 @@ namespace objs {
 class Sphere : public GLObject {
 
  public:
-  explicit Sphere(int lats, int longs, GLuint attr_vertices = 0,
-                  GLuint attr_colours = 1, GLuint attr_normals = 2);
+  explicit Sphere(unsigned int lats, unsigned int longs,
+                  GLuint attr_vertices = 0, GLuint attr_colours = 1,
+                  GLuint attr_normals = 2);
   ~Sphere();
   void Render(GLRenderMode mode) override;
 
  private:
-  int lats, longs, vertices_count;
+  unsigned int lats, longs, vertices_count;
   GLuint vbo, cbo, nbo, element_array;
   GLuint attr_vertices, attr_colours, attr_normals;
   std::vector<GLfloat> vertices, colours;

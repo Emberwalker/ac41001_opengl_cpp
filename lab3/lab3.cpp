@@ -19,7 +19,7 @@ also includes the OpenGL extension initialisation*/
 
 /* Include GLM core and matrix extensions*/
 #include <glm/glm.hpp>
-#include "glm/gtc/matrix_transform.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glload/gl_4_1.hpp>
 
@@ -27,6 +27,7 @@ also includes the OpenGL extension initialisation*/
 //#include "sphere.h"
 #include <guts/objs/cube.h>
 #include <guts/objs/sphere.h>
+#include <memory>
 
 GLuint program;        /* Identifier for the shader program */
 GLuint vao;            /* Vertex array (Container) object. This is the index of the VAO that will be the container for
@@ -43,7 +44,7 @@ guts::GLRenderMode drawmode;            // Defines drawing mode of sphere as poi
 GLuint numlats, numlongs;    //Define the resolution of the sphere object
 
 /* Uniforms*/
-GLint modelID, viewID, projectionID;
+GLint modelID, viewID, projectionID, nMatrixID;
 GLint colourmodeID;
 
 GLfloat aspect_ratio;        /* Aspect ratio of the window defined in the reshape callback*/
@@ -96,11 +97,11 @@ void init(guts::GlfwWindow *glw) {
   colourmodeID = gl::GetUniformLocation(program, "colourmode");
   viewID = gl::GetUniformLocation(program, "view");
   projectionID = gl::GetUniformLocation(program, "projection");
+  nMatrixID = gl::GetUniformLocation(program, "n_matrix");
 
   /* create our sphere and cube objects */
-  aCube = std::unique_ptr<guts::objs::Cube>(new guts::objs::Cube);
-  aSphere = std::unique_ptr<guts::objs::Sphere>(
-      new guts::objs::Sphere(numlats,numlongs));
+  aCube = std::make_unique<guts::objs::Cube>();
+  aSphere = std::make_unique<guts::objs::Sphere>(numlats, numlongs);
 }
 
 /* Called to update the display. Note that this function is called in the event loop in the wrapper
@@ -158,6 +159,10 @@ void display(guts::GlfwWindow *window) {
     // Send the model uniform to the currently bound shader,
     gl::UniformMatrix4fv(modelID, 1, gl::FALSE_, &(model.top()[0][0]));
 
+    // Send normal matrix for lighting
+    mat3 n_matrix = guts::InverseTranspose(glm::mat3(view * model.top()));
+    gl::UniformMatrix3fv(nMatrixID, 1, gl::FALSE_, &n_matrix[0][0]);
+
     /* Draw our cube*/
     aCube->Render(drawmode);
   }
@@ -171,6 +176,8 @@ void display(guts::GlfwWindow *window) {
         scale(model.top(), vec3(model_scale / 3.f, model_scale / 3.f, model_scale / 3.f));//scale equally in all axis
 
     gl::UniformMatrix4fv(modelID, 1, gl::FALSE_, &(model.top()[0][0]));
+    mat3 n_matrix = guts::InverseTranspose(glm::mat3(view * model.top()));
+    gl::UniformMatrix3fv(nMatrixID, 1, gl::FALSE_, &n_matrix[0][0]);
 
     /* Draw our sphere */
     aSphere->Render(drawmode);

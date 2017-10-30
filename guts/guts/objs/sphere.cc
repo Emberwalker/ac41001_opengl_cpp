@@ -1,5 +1,6 @@
 #include "sphere.h"
 #include "guts/internal/buffers.h"
+#include "guts/debug_tools.h"
 
 #include <glm/glm.hpp>
 
@@ -10,7 +11,7 @@ namespace {
 
 } // namespace
 
-Sphere::Sphere(int lats, int longs, GLuint attr_vertices, GLuint attr_colours,
+Sphere::Sphere(unsigned int lats, unsigned int longs, GLuint attr_vertices, GLuint attr_colours,
                GLuint attr_normals) {
   this->lats = lats;
   this->longs = longs;
@@ -48,7 +49,9 @@ Sphere::Sphere(int lats, int longs, GLuint attr_vertices, GLuint attr_colours,
       z = sin(lat_radians);
 
       /* Define the vertex */
-      this->vertices[vnum * 3] = x; this->vertices[vnum * 3 + 1] = y; this->vertices[vnum * 3 + 2] = z;
+      this->vertices[vnum * 3] = x;
+      this->vertices[vnum * 3 + 1] = y;
+      this->vertices[vnum * 3 + 2] = z;
       vnum++;
     }
   }
@@ -98,14 +101,15 @@ Sphere::Sphere(int lats, int longs, GLuint attr_vertices, GLuint attr_colours,
   this->indices[idx] = this->vertices_count - 2; // Tie up last triangle in fan
 
   // Generate buffers after the vectors are fully constructed.
-  this->vbo = guts::internal::GenBuffer((GLfloat *) &this->vertices.front(),
+  this->vbo = guts::internal::GenBuffer(this->vertices.data(),
                                         this->vertices_count * 3);
-  this->cbo = guts::internal::GenBuffer((GLfloat *) &this->colours.front(),
+  this->cbo = guts::internal::GenBuffer(this->colours.data(),
                                         this->vertices_count * 4);
-  this->nbo = guts::internal::GenBuffer((GLfloat *) &this->vertices.front(),
+  this->nbo = guts::internal::GenBuffer(this->vertices.data(),
                                         this->vertices_count * 3);
-  this->element_array = guts::internal::GenElementBuffer(
-      (GLuint *) this->indices.front(), this->indices.size());
+  this->element_array = guts::internal::GenElementBuffer(this->indices.data(),
+                                                         this->indices.size());
+  guts::PrintOpenGLErrors();
 }
 
 Sphere::~Sphere() {
@@ -160,14 +164,13 @@ void Sphere::Render(GLRenderMode mode) {
     GLuint lat_offset_start = this->longs + 2;
     GLuint lat_offset_current = lat_offset_start * 4;
 
-    /* Draw the triangle strips of latitudes */
-    for (int i = 0; i < this->lats - 2; i++)
-    {
+    // Draw the triangle strips of latitudes
+    for (int i = 0; i < this->lats - 2; i++) {
       gl::DrawElements(gl::TRIANGLE_STRIP, this->longs * 2 + 2,
                        gl::UNSIGNED_INT, (GLvoid*)(lat_offset_current));
-      lat_offset_current += (lat_offset_jump * 4);
+      lat_offset_current += (lat_offset_jump * sizeof(GLuint));
     }
-    /* Draw the south pole as a triangle fan */
+    // Draw the south pole as a triangle fan
     gl::DrawElements(gl::TRIANGLE_FAN, this->longs + 2, gl::UNSIGNED_INT,
                      (GLvoid*)(lat_offset_current));
   }

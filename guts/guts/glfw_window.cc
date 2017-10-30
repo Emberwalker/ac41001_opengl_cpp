@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "init.h"
+#include "debug_tools.h"
 
 namespace guts {
 
@@ -62,6 +63,7 @@ void GlfwWindow::SetRenderer(GlfwWindowRenderFunc fn) {
 void GlfwWindow::EventLoop() {
   while (!glfwWindowShouldClose(this->window)) {
     this->render_func(this);
+    guts::PrintOpenGLErrors();
 
     glfwSwapBuffers(this->window);
     glfwPollEvents();
