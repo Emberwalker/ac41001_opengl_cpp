@@ -16,7 +16,7 @@ set(GUTS_CPP
         guts/objs/cube.cc
         guts/objs/sphere.cc
         guts/objs/extrusion.cc
-        guts/debug_tools.cc)
+        guts/debug_tools.cc guts/uniform.cc)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(guts

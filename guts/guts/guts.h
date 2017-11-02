@@ -11,5 +11,6 @@
 #include "gl_object.h"
 #include "debug_tools.h"
 #include "matrix_ops.h"
+#include "uniform.h"
 
 #endif //GUTS_H

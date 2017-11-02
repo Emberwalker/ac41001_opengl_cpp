@@ -40,8 +40,10 @@ GLuint numlats, numlongs;    //Define the resolution of the sphere object
 GLfloat light_x, light_y, light_z;
 
 /* Uniforms*/
-GLint modelID, viewID, projectionID, lightposID, normalmatrixID, colourmodeID,
-    emitmodeID;
+GLint lightposID, normalmatrixID, emitmodeID;
+std::unique_ptr<guts::GLUniform<GLuint>> uniform_colourmode;
+std::unique_ptr<guts::GLUniform<glm::mat4>>
+    uniform_model, uniform_view, uniform_projection;
 
 GLfloat
     aspect_ratio;        /* Aspect ratio of the window defined in the reshape callback*/
@@ -95,13 +97,22 @@ void init(guts::GlfwWindow *glw) {
   }
 
   /* Define uniforms to send to vertex shader */
-  modelID = gl::GetUniformLocation(program, "model");
-  colourmodeID = gl::GetUniformLocation(program, "colourmode");
+  //modelID = gl::GetUniformLocation(program, "model");
+  //colourmodeID = gl::GetUniformLocation(program, "colourmode");
   emitmodeID = gl::GetUniformLocation(program, "emitmode");
-  viewID = gl::GetUniformLocation(program, "view");
-  projectionID = gl::GetUniformLocation(program, "projection");
+  //viewID = gl::GetUniformLocation(program, "view");
+  //projectionID = gl::GetUniformLocation(program, "projection");
   lightposID = gl::GetUniformLocation(program, "lightpos");
   normalmatrixID = gl::GetUniformLocation(program, "normalmatrix");
+
+  uniform_colourmode = std::make_unique<guts::GLUniform<GLuint>>(
+      program, "colourmode");
+  uniform_model = std::make_unique<guts::GLUniform<glm::mat4>>(
+      program, "model");
+  uniform_view = std::make_unique<guts::GLUniform<glm::mat4>>(
+      program, "view");
+  uniform_projection = std::make_unique<guts::GLUniform<glm::mat4>>(
+      program, "projection");
 
   /* create our sphere and cube objects */
   aSphere = std::make_unique<guts::objs::Sphere>(numlats, numlongs);
@@ -155,9 +166,12 @@ void display(guts::GlfwWindow *window) {
 
   // Send our projection and view uniforms to the currently bound shader
   // I do that here because they are the same for all objects
-  gl::Uniform1ui(colourmodeID, colourmode);
-  gl::UniformMatrix4fv(viewID, 1, gl::FALSE_, &view[0][0]);
-  gl::UniformMatrix4fv(projectionID, 1, gl::FALSE_, &projection[0][0]);
+  //gl::Uniform1ui(colourmodeID, colourmode);
+  uniform_colourmode->Set(colourmode);
+  //gl::UniformMatrix4fv(viewID, 1, gl::FALSE_, &view[0][0]);
+  uniform_view->Set(view);
+  //gl::UniformMatrix4fv(projectionID, 1, gl::FALSE_, &projection[0][0]);
+  uniform_projection->Set(projection);
   gl::Uniform4fv(lightposID, 1, value_ptr(lightpos));
 
   /* Draw a small sphere in the lightsource position to visually represent the light source */
@@ -167,7 +181,8 @@ void display(guts::GlfwWindow *window) {
     model.top() =
         scale(model.top(), vec3(0.05f, 0.05f, 0.05f)); // make a small sphere
     // Recalculate the normal matrix and send the model and normal matrices to the vertex shader																							// Recalculate the normal matrix and send to the vertex shader																								// Recalculate the normal matrix and send to the vertex shader																								// Recalculate the normal matrix and send to the vertex shader																						// Recalculate the normal matrix and send to the vertex shader
-    gl::UniformMatrix4fv(modelID, 1, gl::FALSE_, &(model.top()[0][0]));
+    //gl::UniformMatrix4fv(modelID, 1, gl::FALSE_, &(model.top()[0][0]));
+    uniform_model->Set(model.top());
     normalmatrix = guts::InverseTranspose(mat3(view * model.top()));
     gl::UniformMatrix3fv(normalmatrixID, 1, gl::FALSE_, &normalmatrix[0][0]);
 
@@ -200,7 +215,8 @@ void display(guts::GlfwWindow *window) {
     model.top() = translate(model.top(), vec3(x + 0.5f, y, z));
 
     // Send the model uniform and normal matrix to the currently bound shader,
-    gl::UniformMatrix4fv(modelID, 1, gl::FALSE_, &(model.top()[0][0]));
+    //gl::UniformMatrix4fv(modelID, 1, gl::FALSE_, &(model.top()[0][0]));
+    uniform_model->Set(model.top());
 
     // Recalculate the normal matrix and send to the vertex shader
     normalmatrix = guts::InverseTranspose(mat3(view * model.top()));
@@ -221,7 +237,8 @@ void display(guts::GlfwWindow *window) {
                              model_scale / 3.f));//scale equally in all axis
 
     // Recalculate the normal matrix and send the model and normal matrices to the vertex shader																							// Recalculate the normal matrix and send to the vertex shader																								// Recalculate the normal matrix and send to the vertex shader																								// Recalculate the normal matrix and send to the vertex shader																						// Recalculate the normal matrix and send to the vertex shader
-    gl::UniformMatrix4fv(modelID, 1, gl::FALSE_, &(model.top()[0][0]));
+    //gl::UniformMatrix4fv(modelID, 1, gl::FALSE_, &(model.top()[0][0]));
+    uniform_model->Set(model.top());
     normalmatrix = guts::InverseTranspose(mat3(view * model.top()));
     gl::UniformMatrix3fv(normalmatrixID, 1, gl::FALSE_, &normalmatrix[0][0]);
 

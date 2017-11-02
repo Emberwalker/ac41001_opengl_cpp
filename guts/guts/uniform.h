@@ -9,34 +9,15 @@
 
 namespace guts {
 
-template<class T> class GLUniform {
+template<typename T>
+class GLUniform {
 
  public:
   GLUniform(GLuint program, const std::string &uniform_name) {
     this->uniform_id = gl::GetUniformLocation(program, uniform_name.c_str());
   }
 
-  template void Set<GLuint>(T val) {
-    gl::Uniform1ui(this->uniform_id, val);
-  }
-
- protected:
-  GLint uniform_id;
-
-};
-
-template<template<typename V> class T> class GLUniform<T> {
-
- public:
-  GLUniform(GLuint program, const std::string &uniform_name);
-
-  template void Set<glm::vec3, GLfloat>(T<V> val) {
-    gl::Uniform3fv(this->uniform_id, 1, val[0]);
-  }
-
-  template void Set<glm::vec4, GLfloat>(T<V> val) {
-    gl::Uniform4fv(this->uniform_id, 1, val[0]);
-  }
+  void Set(T &val);
 
  private:
   GLint uniform_id;

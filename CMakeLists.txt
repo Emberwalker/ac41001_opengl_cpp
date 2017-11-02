@@ -12,7 +12,7 @@ include_directories(${OPENGL_INCLUDE_DIRS})
 
 # Require C++14
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 
 # User settings
 set(CLANG_GCC_ADDITIONAL_FLAGS "-Wall -pedantic" CACHE STRING "Additional flags when compiling with Clang or GCC.")
