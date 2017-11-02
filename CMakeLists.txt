@@ -12,7 +12,7 @@ include_directories(${OPENGL_INCLUDE_DIRS})
 
 # Require C++14
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # User settings
 set(CLANG_GCC_ADDITIONAL_FLAGS "-Wall -pedantic" CACHE STRING "Additional flags when compiling with Clang or GCC.")
@@ -106,3 +106,5 @@ set(ADDITIONAL_LIBRARIES guts ${ADDITIONAL_LIBRARIES})
 add_subdirectory(lab1)
 add_subdirectory(lab3)
 add_subdirectory(lab4)
+add_subdirectory(texture_checker)
+add_subdirectory(assignment1)

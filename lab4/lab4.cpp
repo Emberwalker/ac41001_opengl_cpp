@@ -40,8 +40,8 @@ GLuint numlats, numlongs;    //Define the resolution of the sphere object
 GLfloat light_x, light_y, light_z;
 
 /* Uniforms*/
-GLint modelID, viewID, projectionID, lightposID, normalmatrixID;
-GLint colourmodeID, emitmodeID;
+GLint modelID, viewID, projectionID, lightposID, normalmatrixID, colourmodeID,
+    emitmodeID;
 
 GLfloat
     aspect_ratio;        /* Aspect ratio of the window defined in the reshape callback*/

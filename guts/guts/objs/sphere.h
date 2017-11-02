@@ -17,7 +17,7 @@ class Sphere : public GLObject {
   ~Sphere();
   void Render(GLRenderMode mode) override;
 
- private:
+ protected:
   unsigned int lats, longs, vertices_count;
   GLuint vbo, cbo, nbo, element_array;
   GLuint attr_vertices, attr_colours, attr_normals;

@@ -101,14 +101,10 @@ Sphere::Sphere(unsigned int lats, unsigned int longs, GLuint attr_vertices, GLui
   this->indices[idx] = this->vertices_count - 2; // Tie up last triangle in fan
 
   // Generate buffers after the vectors are fully constructed.
-  this->vbo = guts::internal::GenBuffer(this->vertices.data(),
-                                        this->vertices_count * 3);
-  this->cbo = guts::internal::GenBuffer(this->colours.data(),
-                                        this->vertices_count * 4);
-  this->nbo = guts::internal::GenBuffer(this->vertices.data(),
-                                        this->vertices_count * 3);
-  this->element_array = guts::internal::GenElementBuffer(this->indices.data(),
-                                                         this->indices.size());
+  this->vbo = guts::internal::GenBuffer(this->vertices);
+  this->cbo = guts::internal::GenBuffer(this->colours);
+  this->nbo = guts::internal::GenBuffer(this->vertices);
+  this->element_array = guts::internal::GenElementBuffer(this->indices);
   guts::PrintOpenGLErrors();
 }
 

@@ -6,21 +6,23 @@
 namespace guts {
 namespace internal {
 
+namespace {
+
+inline void BindArrayBuffer(GLuint id, GLuint attr, GLuint len) {
+  gl::BindBuffer(gl::ARRAY_BUFFER, id);
+  gl::EnableVertexAttribArray(attr);
+  gl::VertexAttribPointer(attr, len, gl::FLOAT, gl::FALSE_, 0, nullptr);
+}
+
+} // namespace
+
 inline void RenderBasicObject(GLRenderMode mode, int render_length,
                               GLuint vbo, GLuint attr_vertices,
                               GLuint cbo, GLuint attr_colours,
                               GLuint nbo, GLuint attr_normals) {
-  gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-  gl::EnableVertexAttribArray(attr_vertices);
-  gl::VertexAttribPointer(attr_vertices, 3, gl::FLOAT, gl::FALSE_, 0, nullptr);
-
-  gl::BindBuffer(gl::ARRAY_BUFFER, cbo);
-  gl::EnableVertexAttribArray(attr_colours);
-  gl::VertexAttribPointer(attr_colours, 4, gl::FLOAT, gl::FALSE_, 0, nullptr);
-
-  gl::BindBuffer(gl::ARRAY_BUFFER, nbo);
-  gl::EnableVertexAttribArray(attr_normals);
-  gl::VertexAttribPointer(attr_normals, 3, gl::FLOAT, gl::FALSE_, 0, nullptr);
+  BindArrayBuffer(vbo, attr_vertices, 3);
+  BindArrayBuffer(cbo, attr_colours, 4);
+  BindArrayBuffer(nbo, attr_normals, 3);
 
   gl::PointSize(3.f);
 
@@ -35,6 +37,16 @@ inline void RenderBasicObject(GLRenderMode mode, int render_length,
   } else {
     gl::DrawArrays(gl::TRIANGLES, 0, render_length);
   }
+}
+
+inline void RenderBasicObject(GLRenderMode mode, int render_length,
+                              GLuint vbo, GLuint attr_vertices,
+                              GLuint cbo, GLuint attr_colours,
+                              GLuint nbo, GLuint attr_normals,
+                              GLuint tbo, GLuint attr_texs) {
+  BindArrayBuffer(tbo, attr_texs, 2);
+  RenderBasicObject(mode, render_length, vbo, attr_vertices, cbo, attr_colours,
+                    nbo, attr_normals);
 }
 
 } // namespace internal

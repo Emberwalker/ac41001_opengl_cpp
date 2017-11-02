@@ -1,5 +1,7 @@
 #include "gl_program_builder.h"
 
+#include "guts/debug_tools.h"
+
 #include <iostream>
 #include <sstream>
 
@@ -53,6 +55,7 @@ GLProgramBuilder::~GLProgramBuilder() {
 
 void GLProgramBuilder::AddShader(GLenum shader_type,
                                  const std::string &shader_file_name) {
+  guts_assert(!shader_file_name.empty(), "shader file name must not be empty");
   std::string shader_src;
   try {
     shader_src = GetShaderSrc(shader_file_name);

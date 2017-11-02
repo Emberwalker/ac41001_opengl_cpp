@@ -2,6 +2,7 @@
 #define GUTS_OBJS_CUBE_H
 
 #include "guts/gl_object.h"
+#include <vector>
 #include <glload/gl_4_1.hpp>
 
 namespace guts {
@@ -10,15 +11,15 @@ namespace objs {
 class Cube : public GLObject {
 
  public:
-  explicit Cube(GLuint attr_vertices = 0, GLuint attr_colours = 1,
-                GLuint attr_normals = 2);
+  explicit Cube(bool textured = false, GLuint attr_vertices = 0,
+                GLuint attr_colours_or_tex = 1, GLuint attr_normals = 2);
   ~Cube();
   void Render(GLRenderMode mode) override;
 
  private:
-  GLuint vbo, cbo, nbo;
-  GLuint attr_vertices, attr_colours, attr_normals;
-  GLfloat vertices[108], colours[144], normals[108];
+  GLuint vbo, c_t_bo, nbo;
+  GLuint attr_vertices, attr_colours_or_tex, attr_normals;
+  std::vector<GLfloat> vertices, colours_or_tex, normals;
 
 };
 
