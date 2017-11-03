@@ -18,12 +18,12 @@ void GLUniform<GLfloat>::Set(GLfloat &val) {
 }
 
 template<>
-void GLUniform<glm::tvec3<GLfloat>>::Set(glm::tvec3<GLfloat> &val) {
+void GLUniform<glm::vec3>::Set(glm::vec3 &val) {
   gl::Uniform3fv(this->uniform_id, 1, &val[0]);
 }
 
 template<>
-void GLUniform<glm::tvec4<GLfloat>>::Set(glm::tvec4<GLfloat> &val) {
+void GLUniform<glm::vec4>::Set(glm::vec4 &val) {
   gl::Uniform4fv(this->uniform_id, 1, &val[0]);
 }
 

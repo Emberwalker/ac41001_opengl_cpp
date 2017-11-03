@@ -20,10 +20,6 @@ typedef void(*GlfwWindowRenderFunc)(GlfwWindow *window);
 // Represents a GLFW window by wrapping part of GLFW's C API.
 class GlfwWindow {
 
-  // Disable Clang unused warning on these. They're lib functions.
-#pragma clang diagnostic push // IGNORE_UNUSED
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-
  public:
   GlfwWindow(int window_width, int window_height, std::string initial_title);
   ~GlfwWindow();
@@ -42,8 +38,6 @@ class GlfwWindow {
   // Gets the raw window that this object represents. DO NOT USE UNLESS
   // ABSOLUTELY NEEDED! Prefer to use other methods on this object.
   GLFWwindow *GetRawWindow();
-
-#pragma clang diagnostic pop // IGNORE_UNUSED END
 
  private:
   GLFWwindow *window;
