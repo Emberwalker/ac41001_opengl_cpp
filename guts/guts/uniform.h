@@ -17,7 +17,10 @@ class GLUniform {
     this->uniform_id = gl::GetUniformLocation(program, uniform_name.c_str());
   }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "NotImplementedFunctions"
   void Set(T &val);
+#pragma clang diagnostic pop
 
  private:
   GLint uniform_id;

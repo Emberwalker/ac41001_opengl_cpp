@@ -2,6 +2,7 @@
 #define GUTS_INTERNAL_RENDER_H
 
 #include "guts/gl_object.h"
+#include "guts/debug_tools.h"
 
 namespace guts {
 namespace internal {
@@ -20,6 +21,7 @@ inline void RenderBasicObject(GLRenderMode mode, int render_length,
                               GLuint vbo, GLuint attr_vertices,
                               GLuint cbo, GLuint attr_colours,
                               GLuint nbo, GLuint attr_normals) {
+  PrintOpenGLErrors();
   BindArrayBuffer(vbo, attr_vertices, 3);
   BindArrayBuffer(cbo, attr_colours, 4);
   BindArrayBuffer(nbo, attr_normals, 3);
@@ -32,11 +34,14 @@ inline void RenderBasicObject(GLRenderMode mode, int render_length,
     gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
   }
 
+  PrintOpenGLErrors();
+
   if (mode == RENDER_POINTS) {
     gl::DrawArrays(gl::POINTS, 0, render_length);
   } else {
     gl::DrawArrays(gl::TRIANGLES, 0, render_length);
   }
+  PrintOpenGLErrors();
 }
 
 inline void RenderBasicObject(GLRenderMode mode, int render_length,

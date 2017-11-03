@@ -8,15 +8,19 @@ set(GUTS_H
         guts/objs/sphere.h
         guts/internal/buffers.h
         guts/debug_tools.h
-        guts/matrix_ops.h guts/objs/extrusion.h guts/uniform.h)
+        guts/matrix_ops.h
+        guts/objs/extrusion.h
+        guts/uniform.h guts/internal/loopable_container.h)
 set(GUTS_CPP
         guts/init.cc
         guts/glfw_window.cc
         guts/gl_program_builder.cc
+        guts/gl_object.cc
         guts/objs/cube.cc
         guts/objs/sphere.cc
         guts/objs/extrusion.cc
-        guts/debug_tools.cc guts/uniform.cc)
+        guts/debug_tools.cc
+        guts/uniform.cc)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(guts

@@ -9,6 +9,8 @@ enum GLRenderMode {
   RENDER_POINTS = 2
 };
 
+GLRenderMode NextRenderMode(GLRenderMode mode);
+
 namespace objs {
 
 class GLObject {

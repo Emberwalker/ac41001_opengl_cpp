@@ -31,6 +31,10 @@ void __GutsAssert(const std::string &fn, const std::string &file, int ln,
 
 } // namespace guts
 
+// Prepend a parameter with __unused to silence 'unused parameter' warnings.
+#undef __unused
+#define __unused __attribute__((unused))
+
 #undef guts_assert
 #define guts_assert(condition, msg) guts::__GutsAssert(__FUNCTION__,__FILE__,__LINE__, condition, msg)
 

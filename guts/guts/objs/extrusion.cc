@@ -3,18 +3,21 @@
 #include "guts/debug_tools.h"
 #include "guts/internal/buffers.h"
 #include "guts/internal/render.h"
+#include "guts/internal/loopable_container.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/vector_angle.hpp>
+
+using guts::internal::GetFromVec;
 
 namespace guts {
 namespace objs {
 
 namespace {
 
-glm::vec3 GetNormalBetween(glm::vec3 anchor, glm::vec3 prev, glm::vec3 next) {
-  auto to_prev = glm::normalize(prev - anchor);
-  auto to_next = glm::normalize(anchor - next);
+glm::vec3 GetSurfaceNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
+  //auto to_prev = glm::normalize(prev - anchor);
+  //auto to_next = glm::normalize(anchor - next);
   // Ignore IncompatibleTypes because CLion is a derp.
 /*
 #pragma clang diagnostic push
@@ -28,7 +31,7 @@ glm::vec3 GetNormalBetween(glm::vec3 anchor, glm::vec3 prev, glm::vec3 next) {
   auto norm3 = glm::vec3(norm);
   norm3 /= norm.z;
   return norm3;*/
-#pragma clang diagnostic push
+/*#pragma clang diagnostic push
 #pragma ide diagnostic ignored "IncompatibleTypes"
   float angle = glm::angle(to_prev, to_next);
 #pragma clang diagnostic pop
@@ -37,7 +40,12 @@ glm::vec3 GetNormalBetween(glm::vec3 anchor, glm::vec3 prev, glm::vec3 next) {
   norm = glm::normalize(norm);
   auto norm3 = glm::vec3(norm);
   norm3 *= (1.f/norm.z);
-  return norm3;
+  return norm3;*/
+
+  // Based on https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
+  auto U = b - a;
+  auto V = c - a;
+  return glm::normalize(glm::cross(U, V));
 }
 
 inline void PushVec3OnVector(std::vector<GLfloat> &std_vec,
@@ -47,10 +55,18 @@ inline void PushVec3OnVector(std::vector<GLfloat> &std_vec,
   std_vec.push_back(vec3.z);
 }
 
+inline void PushVec4OnVector(std::vector<GLfloat> &std_vec,
+                             glm::vec4 &vec4) {
+  std_vec.push_back(vec4.r);
+  std_vec.push_back(vec4.g);
+  std_vec.push_back(vec4.b);
+  std_vec.push_back(vec4.a);
+}
+
 } // namespace
 
-ExtrudedObject::ExtrudedObject(std::vector<GLfloat> face_triangles,
-                               std::vector<GLfloat> face_edges,
+ExtrudedObject::ExtrudedObject(std::vector<GLfloat> &face_triangles,
+                               std::vector<GLfloat> &face_edges,
                                glm::vec4 colour) {
   guts_assert(face_triangles.size() % 3 == 0, "face_triangles must be "
       "divisible by 3 for vertices.");
@@ -77,7 +93,7 @@ ExtrudedObject::ExtrudedObject(std::vector<GLfloat> face_triangles,
   vertices.insert(vertices.end(), face_triangles.begin(), face_triangles.end());
   vertices.insert(vertices.end(), top_face_triangles.begin(),
                   top_face_triangles.end());
-  auto triangle_face_count = top_face_triangles.size();
+  auto triangle_face_count = top_face_triangles.size() / 3;
   normals.reserve(triangle_face_count * 2);
   for (int i = 0; i < triangle_face_count; i++) {
     normals.push_back(0);
@@ -94,55 +110,64 @@ ExtrudedObject::ExtrudedObject(std::vector<GLfloat> face_triangles,
   auto edge_vertex_count = face_edges.size() / 3;
   vertices.reserve(vertices.size() + edge_vertex_count * 3);
   normals.reserve(vertices.size() + edge_vertex_count * 3);
-  for (int i = 0; i < edge_vertex_count - 1; i += 3) {
-    glm::vec3 prev_edge_bottom;
-    if ((i - 3) < 0) {
+  for (int i = 0; i < (edge_vertex_count * 3); i += 3) {
+    auto prev_edge_bottom = glm::vec3(GetFromVec(face_edges, -3), 0,
+                                      GetFromVec(face_edges, -1));
+    /*if ((i - 3) < 0) {
       auto base = edge_vertex_count * 3;
       prev_edge_bottom = glm::vec3(face_edges[base-3], 0,
                                    face_edges[base-1]);
     } else {
       prev_edge_bottom = glm::vec3(face_edges[i-3], 0, face_edges[i-1]);
-    }
-    auto curr_edge_bottom = glm::vec3(face_edges[i], 0, face_edges[i+2]);
-    auto next_edge_bottom = glm::vec3(face_edges[i+3], 0, face_edges[i+5]);
-    glm::vec3 next_next_edge_bottom;
+    }*/
+    //auto curr_edge_bottom = glm::vec3(face_edges[i], 0, face_edges[i+2]);
+    auto curr_edge_bottom = glm::vec3(GetFromVec(face_edges, i), 0,
+                                      GetFromVec(face_edges, i + 2));
+    //auto next_edge_bottom = glm::vec3(face_edges[i+3], 0, face_edges[i+5]);
+    auto next_edge_bottom = glm::vec3(GetFromVec(face_edges, i + 3), 0,
+                                      GetFromVec(face_edges, i + 5));
+    auto next_next_edge_bottom = glm::vec3(GetFromVec(face_edges, i + 6), 0,
+                                           GetFromVec(face_edges, i + 8));
+    /*glm::vec3 next_next_edge_bottom;
     // Wrap around if necessary
-    if (i + 6 >= edge_vertex_count) {
-      auto remainder = (i + 6) % edge_vertex_count;
+    if (i + 6 >= edge_vertex_count * 3) {
+      auto remainder = (i + 6) % (edge_vertex_count * 3);
       next_next_edge_bottom = glm::vec3(face_edges[remainder], 0, face_edges[remainder + 2]);
     } else {
       next_next_edge_bottom = glm::vec3(face_edges[i+6], 0, face_edges[i+8]);
-    }
+    }*/
 
     auto curr_edge_top = curr_edge_bottom;
     curr_edge_top.y = 1.f;
     auto next_edge_top = next_edge_bottom;
-    next_edge_bottom.y = 1.f;
+    next_edge_top.y = 1.f;
 
-    glm::vec3 vecs[] = {curr_edge_top, curr_edge_bottom, next_edge_bottom,
-                        next_edge_bottom, next_edge_top, curr_edge_top};
+    glm::vec3 vecs[] = {curr_edge_bottom, curr_edge_top, next_edge_top,
+                        next_edge_top, next_edge_bottom, curr_edge_bottom};
     for (auto vec : vecs) {
       PushVec3OnVector(vertices, vec);
     }
 
-    // Normals (curr)
-    glm::vec3 norm_currs = GetNormalBetween(curr_edge_bottom, prev_edge_bottom,
-                                            next_edge_bottom);
+    // Normals
+    glm::vec3 norm_tri1 = GetSurfaceNormal(curr_edge_bottom, curr_edge_top,
+                                            next_edge_top);
+    glm::vec3 norm_tri2 = GetSurfaceNormal(next_edge_top, next_edge_bottom,
+                                            curr_edge_bottom);
 
-    // Normals (next)
-    glm::vec3 norm_nexts = GetNormalBetween(next_edge_bottom, curr_edge_bottom,
-                                            next_next_edge_bottom);
-
-    PushVec3OnVector(vertices, norm_currs);
-    PushVec3OnVector(vertices, norm_currs);
-    PushVec3OnVector(vertices, norm_nexts);
-    PushVec3OnVector(vertices, norm_nexts);
-    PushVec3OnVector(vertices, norm_nexts);
-    PushVec3OnVector(vertices, norm_currs);
+    PushVec3OnVector(normals, norm_tri1);
+    PushVec3OnVector(normals, norm_tri1);
+    PushVec3OnVector(normals, norm_tri1);
+    PushVec3OnVector(normals, norm_tri2);
+    PushVec3OnVector(normals, norm_tri2);
+    PushVec3OnVector(normals, norm_tri2);
   }
 
   // Colours
-  // TODO(arkan): Finish this bit.
+  auto colours_max = (vertices.size() / 3) * 4;
+  colours.reserve(colours_max);
+  for (int i = 0; i < colours_max; i += 4) {
+    PushVec4OnVector(colours, colour);
+  }
 
   vbo = guts::internal::GenBuffer(vertices);
   cbo = guts::internal::GenBuffer(colours);
@@ -164,7 +189,6 @@ void ExtrudedObject::OverrideAttributeLayout(GLuint attr_vertices,
 }
 
 void ExtrudedObject::Render(GLRenderMode mode) {
-  // TODO(arkan): Obey should_use_colours
   guts::internal::RenderBasicObject(mode,
                                     static_cast<int>(this->vertices.size() / 3),
                                     this->vbo, this->attr_vertices,

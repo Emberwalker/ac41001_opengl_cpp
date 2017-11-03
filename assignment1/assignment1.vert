@@ -16,7 +16,7 @@ out vec3 N, L, V, frag_position;
 // These are the uniforms that are defined in the application
 uniform mat4 model, view, projection;
 uniform mat3 normalmatrix;
-uniform uint colourmode;
+uniform uint colourmode, emitmode;
 uniform vec4 lightpos;
 
 // Global constants (for this vertex shader)
@@ -25,7 +25,7 @@ void main() {
 	//vec3 emissive = vec3(0);				// Create a vec3(0, 0, 0) for our emmissive light
 	vec4 position_h = vec4(position, 1.0);	// Convert the (x,y,z) position to homogeneous coords (x,y,z,w)
 	//vec4 diffuse_albedo;					// This is the vertex colour, used to handle the colourmode change
-	vec3 light_pos3 = lightpos.xyz;
+	vec3 light_pos3 = lightpos.xyz / lightpos.w;
 
 	// Switch the vertex colour based on the colourmode
 	/*if (colourmode == 1)

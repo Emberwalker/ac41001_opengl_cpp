@@ -1,4 +1,5 @@
 #include "uniform.h"
+#include <glm/gtc/type_ptr.hpp>
 
 namespace guts {
 
@@ -19,12 +20,12 @@ void GLUniform<GLfloat>::Set(GLfloat &val) {
 
 template<>
 void GLUniform<glm::vec3>::Set(glm::vec3 &val) {
-  gl::Uniform3fv(this->uniform_id, 1, &val[0]);
+  gl::Uniform3fv(this->uniform_id, 1, glm::value_ptr(val));
 }
 
 template<>
 void GLUniform<glm::vec4>::Set(glm::vec4 &val) {
-  gl::Uniform4fv(this->uniform_id, 1, &val[0]);
+  gl::Uniform4fv(this->uniform_id, 1, glm::value_ptr(val));
 }
 
 template<>

@@ -11,10 +11,34 @@ std::vector<GLenum> GetAllErrors() {
   return errs;
 }
 
+std::string OpenGLErrorToString(GLenum err) {
+  switch (err) {
+    case 0x500:
+      return "GL_INVALID_ENUM";
+    case 0x501:
+      return "GL_INVALID_VALUE";
+    case 0x502:
+      return "GL_INVALID_OPERATION";
+    case 0x503:
+      return "GL_STACK_OVERFLOW";
+    case 0x504:
+      return "GL_STACK_UNDERFLOW";
+    case 0x505:
+      return "GL_OUT_OF_MEMORY";
+    case 0x506:
+      return "GL_INVALID_FRAMEBUFFER_OPERATION";
+    case 0x507:
+      return "GL_CONTEXT_LOST";
+    default:
+      return "Unknown error code";
+  }
+}
+
 void PrintSingleError(GLenum err) {
   std::cerr
       << "OpenGL error 0x"
       << std::hex << err
+      << ": " << OpenGLErrorToString(err)
       << std::endl;
 }
 
