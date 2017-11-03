@@ -64,6 +64,7 @@ void main() {
 	//fcolour = vec4(attenuation*(ambient + diffuse + specular) + emissive + global_ambient, 1.0);
 	fcolour = colour;
 
+    frag_position = position;
 	gl_Position = (projection * view * model) * position_h;
 }
 

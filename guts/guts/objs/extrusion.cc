@@ -16,32 +16,6 @@ namespace objs {
 namespace {
 
 glm::vec3 GetSurfaceNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
-  //auto to_prev = glm::normalize(prev - anchor);
-  //auto to_next = glm::normalize(anchor - next);
-  // Ignore IncompatibleTypes because CLion is a derp.
-/*
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "IncompatibleTypes"
-  float dotted = glm::dot(to_prev, to_next);
-#pragma clang diagnostic pop
-  float angle = acos(dotted);
-  glm::vec4 norm = glm::rotate(glm::mat4(), angle, glm::vec3(0, 1, 0))
-      * glm::vec4(to_prev, 1);
-  //norm = glm::normalize(norm);
-  auto norm3 = glm::vec3(norm);
-  norm3 /= norm.z;
-  return norm3;*/
-/*#pragma clang diagnostic push
-#pragma ide diagnostic ignored "IncompatibleTypes"
-  float angle = glm::angle(to_prev, to_next);
-#pragma clang diagnostic pop
-  glm::vec4 norm = glm::rotate(glm::mat4(), angle / 2.f, glm::vec3(0,1,0))
-      * glm::vec4(to_prev, 1);
-  norm = glm::normalize(norm);
-  auto norm3 = glm::vec3(norm);
-  norm3 *= (1.f/norm.z);
-  return norm3;*/
-
   // Based on https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
   auto U = b - a;
   auto V = c - a;
@@ -113,14 +87,6 @@ ExtrudedObject::ExtrudedObject(std::vector<GLfloat> &face_triangles,
   for (int i = 0; i < (edge_vertex_count * 3); i += 3) {
     auto prev_edge_bottom = glm::vec3(GetFromVec(face_edges, -3), 0,
                                       GetFromVec(face_edges, -1));
-    /*if ((i - 3) < 0) {
-      auto base = edge_vertex_count * 3;
-      prev_edge_bottom = glm::vec3(face_edges[base-3], 0,
-                                   face_edges[base-1]);
-    } else {
-      prev_edge_bottom = glm::vec3(face_edges[i-3], 0, face_edges[i-1]);
-    }*/
-    //auto curr_edge_bottom = glm::vec3(face_edges[i], 0, face_edges[i+2]);
     auto curr_edge_bottom = glm::vec3(GetFromVec(face_edges, i), 0,
                                       GetFromVec(face_edges, i + 2));
     //auto next_edge_bottom = glm::vec3(face_edges[i+3], 0, face_edges[i+5]);
@@ -128,14 +94,6 @@ ExtrudedObject::ExtrudedObject(std::vector<GLfloat> &face_triangles,
                                       GetFromVec(face_edges, i + 5));
     auto next_next_edge_bottom = glm::vec3(GetFromVec(face_edges, i + 6), 0,
                                            GetFromVec(face_edges, i + 8));
-    /*glm::vec3 next_next_edge_bottom;
-    // Wrap around if necessary
-    if (i + 6 >= edge_vertex_count * 3) {
-      auto remainder = (i + 6) % (edge_vertex_count * 3);
-      next_next_edge_bottom = glm::vec3(face_edges[remainder], 0, face_edges[remainder + 2]);
-    } else {
-      next_next_edge_bottom = glm::vec3(face_edges[i+6], 0, face_edges[i+8]);
-    }*/
 
     auto curr_edge_top = curr_edge_bottom;
     curr_edge_top.y = 1.f;

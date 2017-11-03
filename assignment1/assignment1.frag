@@ -19,10 +19,13 @@ int shininess = 8;
 
 void main() {
     vec4 diffuse_albedo;
-    if (colourmode == 1)
+    if (colourmode == 1) {
         diffuse_albedo = fcolour;
-    else
+    } else if (colourmode == 2) {
+        diffuse_albedo = vec4(clamp(frag_position, vec3(0.25), vec3(1.0)), 1.0);
+    } else {
         diffuse_albedo = vec4(1, 0, 0, 1);
+    }
 
     vec3 ambient = diffuse_albedo.xyz * ambient_multiplier;
 

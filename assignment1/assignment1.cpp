@@ -25,14 +25,12 @@ const float VIEW_INC = 0.05f;
 // GL Globals
 GLuint program, vao;
 GLuint window_width = 640, window_height = 480;
-GLuint colourmode = 0;
+GLuint colourmode = 1;
 GLfloat aspect_ratio = 640.f / 480.f;
 GLfloat view_x = 0.f, view_y = 0.f, view_z = 0.f;
 GLfloat light_x = 0, light_y = 0, light_z = 0;
 GLfloat TEMP_x = 0;
 guts::GLRenderMode render_mode = guts::RENDER_NORMAL;
-
-int ticks = 0;
 
 // GL Uniforms
 UniformPtr<glm::mat4> model_uniform, view_uniform,
@@ -100,18 +98,10 @@ static void Display(__unused guts::GlfwWindow *window) {
   glm::vec4 light_pos = view * glm::vec4(light_x, light_y, light_z, 1.0);
   glm::vec3 light_pos3 = glm::vec3(light_pos) / light_pos.w;
 
-  if (ticks % 1000) {
-    ticks = 0;
-    std::cout << "Light Pos: x"
-              << light_pos3.x
-              << " y" << light_pos3.y
-              << " z" << light_pos3.z
-              << std::endl;
-  }
-
   view_uniform->Set(view);
   projection_uniform->Set(projection);
   light_pos_uniform->Set(light_pos);
+  colour_mode_uniform->Set(colourmode);
 
   model.push(model.top());
   {
@@ -144,7 +134,6 @@ static void Display(__unused guts::GlfwWindow *window) {
   model.pop();
 
   gl::UseProgram(0);
-  ticks++;
   TEMP_x += VIEW_INC;
 }
 
@@ -170,7 +159,8 @@ static void keyCallback(GLFWwindow *window,
   if (key == GLFW_KEY_D) view_z -= VIEW_INC;
 
   if (key == 'M' && action != GLFW_PRESS) {
-    colourmode = static_cast<GLuint>(!colourmode);
+    colourmode++;
+    if (colourmode > 2) colourmode = 0;
   }
 
   if (key == ',' && action != GLFW_PRESS) {
