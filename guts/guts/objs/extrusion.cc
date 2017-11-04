@@ -3,7 +3,7 @@
 #include "guts/debug_tools.h"
 #include "guts/internal/buffers.h"
 #include "guts/internal/render.h"
-#include "guts/internal/loopable_container.h"
+#include "guts/internal/containers.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/vector_angle.hpp>

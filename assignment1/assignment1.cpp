@@ -1,5 +1,5 @@
 #include <guts/guts.h>
-#include <guts/objs/extrusion.h>
+#include <guts/objs/tube.h>
 #include <guts/objs/sphere.h>
 
 #include <memory>
@@ -45,7 +45,7 @@ std::unique_ptr<guts::objs::ExtrudedObject> pumpjack_head, pumpjack_frame,
     pumpjack_pitman_arm_left, pumpjack_pitman_arm_right;
 std::unique_ptr<guts::objs::Sphere> light_sphere;
 
-std::unique_ptr<guts::objs::ExtrudedObject> TEMPORARY;
+std::unique_ptr<guts::objs::Tube> TEMPORARY;
 
 static void Init(__unused guts::GlfwWindow *window) {
   // TODO(arkan): Implement.
@@ -66,10 +66,9 @@ static void Init(__unused guts::GlfwWindow *window) {
   emit_mode_uniform = GetNewUniform<GLuint>(program, "emitmode");
   light_pos_uniform = GetNewUniform<glm::vec4>(program, "lightpos");
 
-  std::vector<GLfloat> vertices = {0,0,0, 1,0,0, 1,0,1};
-  std::vector<GLfloat> edges = {0,0,0, 1,0,0, 1,0,1};
-  TEMPORARY = std::make_unique<guts::objs::ExtrudedObject>(vertices, edges,
-                                                           glm::vec4(1,1,1,1));
+  //std::vector<GLfloat> vertices = {0,0,0, 1,0,0, 1,0,1};
+  //std::vector<GLfloat> edges = {0,0,0, 1,0,0, 1,0,1};
+  TEMPORARY = std::make_unique<guts::objs::Tube>(1000);
 
   light_sphere = std::make_unique<guts::objs::Sphere>(100, 100);
 }

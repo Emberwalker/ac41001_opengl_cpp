@@ -10,7 +10,7 @@ set(GUTS_H
         guts/debug_tools.h
         guts/matrix_ops.h
         guts/objs/extrusion.h
-        guts/uniform.h guts/internal/loopable_container.h)
+        guts/uniform.h guts/internal/containers.h guts/objs/tube.h)
 set(GUTS_CPP
         guts/init.cc
         guts/glfw_window.cc
@@ -20,7 +20,7 @@ set(GUTS_CPP
         guts/objs/sphere.cc
         guts/objs/extrusion.cc
         guts/debug_tools.cc
-        guts/uniform.cc)
+        guts/uniform.cc guts/objs/tube.cc)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(guts
