@@ -1,3 +1,13 @@
+/*
+ * Assignment 1
+ *
+ * Sections copied from or based on Dr Iain Martin's materials.
+ * Other sources noted where applicable.
+ * This disclaimer also covers the entire GUTS static library.
+ *
+ * @author Robert T. <arkan@drakon.io>
+ */
+
 #include <guts/guts.h>
 #include <guts/objs/tube.h>
 #include <guts/objs/cube.h>
@@ -27,7 +37,7 @@ constexpr glm::vec3 AXIS_X = glm::vec3(1, 0, 0);
 constexpr glm::vec3 AXIS_Y = glm::vec3(0, 1, 0);
 constexpr glm::vec3 AXIS_Z = glm::vec3(0, 0, 1);
 const float VIEW_INC = 0.05f;
-const double TIME_PERIOD = 5.0;
+const float TIME_PERIOD = 5.0;
 glm::vec4 PART_COLOUR = glm::vec4(1, 1, 1, 1);
 
 // based on https://stackoverflow.com/a/35651717
@@ -39,8 +49,8 @@ GLuint program, vao;
 GLuint window_width = 640, window_height = 480;
 GLuint colourmode = 1, lightmode = 0;
 GLfloat aspect_ratio = 640.f / 480.f;
-GLfloat view_x = (PI<GLfloat> / 3) * 2, view_y = 0.f, view_z = 0.f;
-GLfloat light_x = 0, light_y = 1, light_z = 0;
+GLfloat view_x = 0.f, view_y = 0.f, view_z = 0.f;
+GLfloat light_x = 0, light_y = 0, light_z = -3;
 guts::GLRenderMode render_mode = guts::RENDER_NORMAL;
 
 // GL Uniforms
@@ -107,6 +117,11 @@ static void UpdateAndRender(glm::mat4 &view, glm::mat4 &model,
   mode = 0;
 }
 
+template <typename T>
+static T Clamp(T val, T min, T max) {
+  return std::max(min, std::min(max, val));
+}
+
 static void Display(guts::GlfwWindow *window) {
   gl::ClearColor(0, 0, 0, 1);
   gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -115,6 +130,7 @@ static void Display(guts::GlfwWindow *window) {
 
   auto time = static_cast<float>(std::fmod(window->GlfwTimer(), TIME_PERIOD));
   time /= TIME_PERIOD;
+
   // For sin/cos/etc based transforms
   float time_pi = time * 2 * PI<float>;
 
@@ -124,7 +140,7 @@ static void Display(guts::GlfwWindow *window) {
   //glm::mat3 normal_matrix;
   glm::mat4 projection = glm::perspective(glm::radians(30.f), aspect_ratio, 0.1f, 100.f);
   glm::mat4 view = glm::lookAt(
-      glm::vec3(0,0,16),
+      glm::vec3(0,9,9),
       glm::vec3(0,0,0),
       glm::vec3(0,1,0)
   );
@@ -135,7 +151,7 @@ static void Display(guts::GlfwWindow *window) {
   view = glm::rotate(view, view_z, AXIS_Z);
 
   glm::vec4 light_pos = view * glm::vec4(light_x, light_y, light_z, 1.0);
-  glm::vec3 light_pos3 = glm::vec3(light_pos) / light_pos.w;
+  glm::vec3 light_pos3 = glm::vec3(light_x, light_y, light_z);
 
   view_uniform->Set(view);
   projection_uniform->Set(projection);
@@ -157,13 +173,14 @@ static void Display(guts::GlfwWindow *window) {
   model.push(model.top());
   {
     // Whole model transforms
-    model.top() = glm::translate(model.top(), glm::vec3(0, -2, 0));
+    model.top() = glm::scale(model.top(), glm::vec3(2, 2, 2));
+    //odel.top() = glm::translate(model.top(), glm::vec3(0, -8, 0));
 
     // Base
     model.push(model.top());
     {
       model.top() = glm::scale(model.top(), glm::vec3(10, 5, 0.2));
-      UpdateAndRender(view, model.top(), *pumpjack_base_part);
+      //UpdateAndRender(view, model.top(), *pumpjack_base_part);
     }
     model.pop();
     // Base END
@@ -205,12 +222,48 @@ static void Display(guts::GlfwWindow *window) {
     // Pumpjack head
     model.push(model.top());
     {
-      model.top() = glm::rotate(model.top(), std::sin(time_pi) * 0.2f, AXIS_Y);
+      model.top() = glm::rotate(model.top(), std::sin(time_pi) * 0.31f, AXIS_Y);
 
       // Pumpjack rear connector rod
       model.push(model.top());
       {
-        model.top() = glm::translate(model.top(), glm::vec3(1, -0.22, 0));
+        model.top() = glm::translate(model.top(), glm::vec3(1, -0.23, 0));
+
+        // Pitman arm left
+        model.push(model.top());
+        {
+          model.top() = glm::rotate(model.top(),
+                                    (std::sin(time_pi - PI<float> / 2.f) * 0.49f) -
+                                        (Clamp(std::sin(time_pi), 0.f, 1.f)) * 0.1f,
+                                    AXIS_Y);
+          model.top() = glm::rotate(model.top(),
+                                    std::sin(time_pi) * -0.25f + PI<float>,
+                                    AXIS_Y);
+          model.top() = glm::rotate(model.top(), PI<float> / 2, AXIS_X);
+          model.top() = glm::scale(model.top(), glm::vec3(0.01, 0.61, 0.01));
+          UpdateAndRender(view, model.top(), *pumpjack_beam_part);
+        }
+        model.pop();
+        // Pitman arm left END
+
+        // Pitman arm left
+        model.push(model.top());
+        {
+          model.top() = glm::translate(model.top(), glm::vec3(0, 0.5, 0));
+          model.top() = glm::rotate(model.top(),
+                                    (std::sin(time_pi - PI<float> / 2.f) * 0.49f) -
+                                        (Clamp(std::sin(time_pi), 0.f, 1.f)) * 0.1f,
+                                    AXIS_Y);
+          model.top() = glm::rotate(model.top(),
+                                    std::sin(time_pi) * -0.25f + PI<float>,
+                                    AXIS_Y);
+          model.top() = glm::rotate(model.top(), PI<float> / 2, AXIS_X);
+          model.top() = glm::scale(model.top(), glm::vec3(0.01, 0.61, 0.01));
+          UpdateAndRender(view, model.top(), *pumpjack_beam_part);
+        }
+        model.pop();
+        // Pitman arm left END
+
         model.top() = glm::scale(model.top(), glm::vec3(0.05, 0.5, 0.05));
         UpdateAndRender(view, model.top(), *pumpjack_beam_part);
       }
@@ -227,16 +280,74 @@ static void Display(guts::GlfwWindow *window) {
     // Rear section (counterweights etc)
     model.push(model.top());
     {
-      model.top() = glm::translate(model.top(), glm::vec3(1, 0.02, -0.75));
+      model.top() = glm::translate(model.top(), glm::vec3(1, 0.02, -0.70));
+      model.top() = glm::scale(model.top(), glm::vec3(0.5, 0.5, 0.5));
 
       // Counterweight base placeholder
       model.push(model.top());
       {
-        model.top() = glm::scale(model.top(), glm::vec3(0.8, 0.4, 0.8));
+        model.top() = glm::scale(model.top(), glm::vec3(1, 0.8, 2));
         UpdateAndRender(view, model.top(), *pumpjack_base_part);
       }
       model.pop();
       // Counterweight base placeholder END
+
+      // Counterweight mid-rod
+      model.push(model.top());
+      {
+        model.top() = glm::translate(model.top(), glm::vec3(0, -0.4, 0.25));
+        model.top() = glm::scale(model.top(), glm::vec3(0.05, 0.8, 0.05));
+        UpdateAndRender(view, model.top(), *pumpjack_beam_part);
+      }
+      model.pop();
+      // Counterweight mid-rod END
+
+      // Counterweight left
+      model.push(model.top());
+      {
+        model.top() = glm::translate(model.top(), glm::vec3(0, 0.3, 0.25));
+        model.top() = glm::scale(model.top(), glm::vec3(1, 0.1, 1));
+        model.top() = glm::rotate(model.top(), time_pi + PI<float>,
+                                  AXIS_Y);
+
+        // Rod
+        model.push(model.top());
+        {
+          model.top() = glm::translate(model.top(), glm::vec3(-0.6, 0, 0));
+          model.top() = glm::scale(model.top(), glm::vec3(0.05, 3, 0.05));
+          UpdateAndRender(view, model.top(), *pumpjack_beam_part);
+        }
+        model.pop();
+        // Rod END
+
+        UpdateAndRender(view, model.top(), *pumpjack_counterweight_part);
+      }
+      model.pop();
+      // Counterweight left END
+
+      // Counterweight right
+      model.push(model.top());
+      {
+        model.top() = glm::rotate(model.top(), PI<float>, AXIS_X);
+        model.top() = glm::translate(model.top(), glm::vec3(0, 0.3, -0.25));
+        model.top() = glm::scale(model.top(), glm::vec3(1, 0.1, 1));
+        model.top() = glm::rotate(model.top(), -(time_pi + PI<float>),
+                                  AXIS_Y);
+
+        // Rod
+        model.push(model.top());
+        {
+          model.top() = glm::translate(model.top(), glm::vec3(-0.6, 0, 0));
+          model.top() = glm::scale(model.top(), glm::vec3(0.05, 3, 0.05));
+          UpdateAndRender(view, model.top(), *pumpjack_beam_part);
+        }
+        model.pop();
+        // Rod END
+
+        UpdateAndRender(view, model.top(), *pumpjack_counterweight_part);
+      }
+      model.pop();
+      // Counterweight right END
     }
     model.pop();
     // Rear section END
@@ -267,6 +378,12 @@ static void keyCallback(GLFWwindow *window,
   if (key == GLFW_KEY_S) view_y -= VIEW_INC;
   if (key == GLFW_KEY_E) view_z += VIEW_INC;
   if (key == GLFW_KEY_D) view_z -= VIEW_INC;
+  if (key == '1') light_x -= VIEW_INC;
+  if (key == '2') light_x += VIEW_INC;
+  if (key == '3') light_y -= VIEW_INC;
+  if (key == '4') light_y += VIEW_INC;
+  if (key == '5') light_z -= VIEW_INC;
+  if (key == '6') light_z += VIEW_INC;
 
   if (key == 'M' && action != GLFW_PRESS) {
     colourmode++;
