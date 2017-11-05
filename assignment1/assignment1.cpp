@@ -38,7 +38,6 @@ constexpr glm::vec3 AXIS_X = glm::vec3(1, 0, 0);
 constexpr glm::vec3 AXIS_Y = glm::vec3(0, 1, 0);
 constexpr glm::vec3 AXIS_Z = glm::vec3(0, 0, 1);
 const float VIEW_INC = 0.05f;
-const float TIME_PERIOD = 5.0;
 glm::vec4 PART_COLOUR = glm::vec4(1, 1, 1, 1);
 
 // based on https://stackoverflow.com/a/35651717
@@ -53,6 +52,7 @@ GLfloat aspect_ratio = 640.f / 480.f;
 GLfloat view_x = 0.f, view_y = 0.f, view_z = 0.f;
 GLfloat light_x = 0, light_y = 0, light_z = -3;
 guts::GLRenderMode render_mode = guts::RENDER_NORMAL;
+float time_period = 5.0;
 
 // GL Uniforms
 UniformPtr<glm::mat4> model_uniform, view_uniform,
@@ -138,8 +138,8 @@ static void Display(guts::GlfwWindow *window) {
   gl::UseProgram(program);
 
   // Fetch the time from GLFW.
-  auto time = static_cast<float>(std::fmod(window->GlfwTimer(), TIME_PERIOD));
-  time /= TIME_PERIOD;
+  auto time = static_cast<float>(std::fmod(window->GlfwTimer(), time_period));
+  time /= time_period;
 
   // For sin/cos/etc based transforms
   float time_pi = time * 2 * PI<float>;
@@ -402,6 +402,10 @@ static void KeyCallback(GLFWwindow *window,
   if (key == '4') light_y += VIEW_INC;
   if (key == '5') light_z -= VIEW_INC;
   if (key == '6') light_z += VIEW_INC;
+  if (key == '=') time_period -= 1.f;
+  if (key == '-') time_period += 1.f;
+
+  if (time_period <= 0.f) time_period = 0.5f;
 
   if (key == 'M' && action != GLFW_PRESS) {
     colourmode++;

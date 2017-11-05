@@ -3,29 +3,27 @@
 #include "guts/debug_tools.h"
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
-
-#include <boost/filesystem.hpp>
 
 namespace guts {
 
 namespace {
 
 std::string GetShaderSrc(const std::string &file_name) {
-  auto loc = boost::filesystem::detail::current_path();
-  loc /= file_name;
-  boost::filesystem::ifstream fileStream(loc, std::ios::in);
+  std::ifstream file_stream;
+  file_stream.open(file_name);
 
-  if (!fileStream.is_open()) {
-    std::cerr << "Could not read file " << loc.string() << "." << std::endl;
-    throw std::invalid_argument("File " + loc.string() + " doesn't exist.");
+  if (!file_stream.is_open()) {
+    std::cerr << "Could not read file " << file_name << "." << std::endl;
+    throw std::invalid_argument("File " + file_name + " doesn't exist.");
   }
 
   std::stringstream strm;
-  strm << fileStream.rdbuf();
+  strm << file_stream.rdbuf();
   auto content = strm.str();
 
-  fileStream.close();
+  file_stream.close();
   return content;
 }
 
