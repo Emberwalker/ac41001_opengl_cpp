@@ -9,6 +9,7 @@ namespace internal {
 
 namespace {
 
+// Internal helper to bind an array buffer.
 inline void BindArrayBuffer(GLuint id, GLuint attr, GLuint len) {
   gl::BindBuffer(gl::ARRAY_BUFFER, id);
   gl::EnableVertexAttribArray(attr);
@@ -17,6 +18,7 @@ inline void BindArrayBuffer(GLuint id, GLuint attr, GLuint len) {
 
 } // namespace
 
+// Renders a basic object consisting of only triangles with no texture edges.
 inline void RenderBasicObject(GLRenderMode mode, int render_length,
                               GLuint vbo, GLuint attr_vertices,
                               GLuint cbo, GLuint attr_colours,
@@ -44,6 +46,7 @@ inline void RenderBasicObject(GLRenderMode mode, int render_length,
   PrintOpenGLErrors();
 }
 
+// Renders a basic object with texture coords.
 inline void RenderBasicObject(GLRenderMode mode, int render_length,
                               GLuint vbo, GLuint attr_vertices,
                               GLuint cbo, GLuint attr_colours,

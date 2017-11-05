@@ -7,6 +7,9 @@
 namespace guts {
 namespace internal {
 
+// Gets a value from a vector, while handing negative indices properly and
+// looping after the end of the vector. Great for grabbing the next vec3 in a
+// GLfloat vector.
 template<typename T>
 T GetFromVec(std::vector<T> &vec, int i) {
   if (i < 0) {
@@ -15,6 +18,7 @@ T GetFromVec(std::vector<T> &vec, int i) {
   return vec[i % vec.size()];
 }
 
+// Breaks down a vector of GLM vec2s into a GLfloat raw vector.
 inline std::vector<float> ToComponents(std::vector<glm::vec2> &src) {
   std::vector<float> out;
   out.reserve(src.size() * 2);
@@ -25,6 +29,7 @@ inline std::vector<float> ToComponents(std::vector<glm::vec2> &src) {
   return out;
 };
 
+// Breaks down a vector of GLM vec3s into a GLfloat raw vector.
 inline std::vector<float> ToComponents(std::vector<glm::vec3> &src) {
   std::vector<float> out;
   out.reserve(src.size() * 3);
@@ -36,6 +41,7 @@ inline std::vector<float> ToComponents(std::vector<glm::vec3> &src) {
   return out;
 };
 
+// Breaks down a vector of GLM vec4s into a GLfloat raw vector.
 inline std::vector<float> ToComponents(std::vector<glm::vec4> &src) {
   std::vector<float> out;
   out.reserve(src.size() * 4);

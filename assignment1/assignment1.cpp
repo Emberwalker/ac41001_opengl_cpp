@@ -24,6 +24,7 @@
 #include "assignment1_a_frame.inl"
 #include "assignment1_counterweight.inl"
 
+// Uniform aliases. Without these, the lines making/editing them get silly long.
 template<typename T>
 using UniformPtr = std::unique_ptr<guts::GLUniform<T>>;
 
@@ -68,15 +69,19 @@ std::unique_ptr<guts::objs::Cube> pumpjack_base_part;
 std::unique_ptr<guts::objs::Sphere> light_sphere;
 
 
+// Initialiser function.
 static void Init(__unused guts::GlfwWindow *window) {
+  // Generate abd bind our VAO
   gl::GenVertexArrays(1, &vao);
   gl::BindVertexArray(vao);
 
+  // Build the program
   guts::GLProgramBuilder builder;
   builder.AddShader(gl::VERTEX_SHADER, "assignment1.vert");
   builder.AddShader(gl::FRAGMENT_SHADER, "assignment1.frag");
   program = builder.BuildProgram();
 
+  // Generate uniform objects
   model_uniform = GetNewUniform<glm::mat4>(program, "model");
   view_uniform = GetNewUniform<glm::mat4>(program, "view");
   projection_uniform = GetNewUniform<glm::mat4>(program, "projection");
@@ -86,6 +91,7 @@ static void Init(__unused guts::GlfwWindow *window) {
   light_mode_uniform = GetNewUniform<GLuint>(program, "lightmode");
   light_pos_uniform = GetNewUniform<glm::vec4>(program, "lightpos");
 
+  // Generate scene objects
   pumpjack_head =
       std::make_unique<guts::objs::ExtrudedObject>(PUMPJACK_HEAD_TRIANGLES,
                                                    PUMPJACK_HEAD_EDGES,
@@ -104,6 +110,7 @@ static void Init(__unused guts::GlfwWindow *window) {
   light_sphere = std::make_unique<guts::objs::Sphere>(100, 100);
 }
 
+// Updates all uniforms and then renders a given GLObject.
 static void UpdateAndRender(glm::mat4 &view, glm::mat4 &model,
                             guts::objs::GLObject &obj,
                             bool emitmode = false) {
@@ -117,27 +124,30 @@ static void UpdateAndRender(glm::mat4 &view, glm::mat4 &model,
   mode = 0;
 }
 
+// Limits a numeric type to between min and max, much like the GLSL clamp()
 template <typename T>
 static T Clamp(T val, T min, T max) {
   return std::max(min, std::min(max, val));
 }
 
+// Rendering handler for GlfwWindow.
 static void Display(guts::GlfwWindow *window) {
   gl::ClearColor(0, 0, 0, 1);
   gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
   gl::Enable(gl::DEPTH_TEST);
   gl::UseProgram(program);
 
+  // Fetch the time from GLFW.
   auto time = static_cast<float>(std::fmod(window->GlfwTimer(), TIME_PERIOD));
   time /= TIME_PERIOD;
 
   // For sin/cos/etc based transforms
   float time_pi = time * 2 * PI<float>;
 
+  // The GL transform stack.
   std::stack<glm::mat4> model;
   model.push(glm::mat4(1.0));
 
-  //glm::mat3 normal_matrix;
   glm::mat4 projection = glm::perspective(glm::radians(30.f), aspect_ratio, 0.1f, 100.f);
   glm::mat4 view = glm::lookAt(
       glm::vec3(0,9,9),
@@ -153,6 +163,7 @@ static void Display(guts::GlfwWindow *window) {
   glm::vec4 light_pos = view * glm::vec4(light_x, light_y, light_z, 1.0);
   glm::vec3 light_pos3 = glm::vec3(light_x, light_y, light_z);
 
+  // Set constant uniforms
   view_uniform->Set(view);
   projection_uniform->Set(projection);
   light_pos_uniform->Set(light_pos);
@@ -232,10 +243,15 @@ static void Display(guts::GlfwWindow *window) {
         // Pitman arm left
         model.push(model.top());
         {
+          // This bit is odd. I ran into some issues with the rod falling out
+          // of sync with the counterweight rotation due to the head end moving
+          // in and out. The clamped sine doesn't fully fix it, but I lack the
+          // maths background to refine it more.
           model.top() = glm::rotate(model.top(),
                                     (std::sin(time_pi - PI<float> / 2.f) * 0.49f) -
                                         (Clamp(std::sin(time_pi), 0.f, 1.f)) * 0.1f,
                                     AXIS_Y);
+          // This cancels out the parents rotation.
           model.top() = glm::rotate(model.top(),
                                     std::sin(time_pi) * -0.25f + PI<float>,
                                     AXIS_Y);
@@ -246,9 +262,10 @@ static void Display(guts::GlfwWindow *window) {
         model.pop();
         // Pitman arm left END
 
-        // Pitman arm left
+        // Pitman arm right
         model.push(model.top());
         {
+          // See the left Pitman arm for remarks.
           model.top() = glm::translate(model.top(), glm::vec3(0, 0.5, 0));
           model.top() = glm::rotate(model.top(),
                                     (std::sin(time_pi - PI<float> / 2.f) * 0.49f) -
@@ -262,7 +279,7 @@ static void Display(guts::GlfwWindow *window) {
           UpdateAndRender(view, model.top(), *pumpjack_beam_part);
         }
         model.pop();
-        // Pitman arm left END
+        // Pitman arm right END
 
         model.top() = glm::scale(model.top(), glm::vec3(0.05, 0.5, 0.05));
         UpdateAndRender(view, model.top(), *pumpjack_beam_part);
@@ -358,13 +375,14 @@ static void Display(guts::GlfwWindow *window) {
   gl::UseProgram(0);
 }
 
-// Called whenever the window is resized. The new window size is given, in pixels.
-static void reshape(GLFWwindow *window, int w, int h) {
+// GlfwWindow reshape handler.
+static void Reshape(GLFWwindow *window, int w, int h) {
   gl::Viewport(0, 0, (GLsizei) w, (GLsizei) h);
   aspect_ratio = ((float) w / 640.f * 4.f) / ((float) h / 480.f * 3.f);
 }
 
-static void keyCallback(GLFWwindow *window,
+// GlfwWindow handler for key presses.
+static void KeyCallback(GLFWwindow *window,
                         int key,
                         __unused int s,
                         int action,
@@ -404,13 +422,13 @@ int main(int argc, char *argv[]) {
   guts::GlfwWindow *glw = new guts::GlfwWindow(1024, 768, "Assignment 1");
 
   glw->SetRenderer(Display);
-  glw->SetKeyCallback(keyCallback);
-  glw->SetReshapeCallback(reshape);
+  glw->SetKeyCallback(KeyCallback);
+  glw->SetReshapeCallback(Reshape);
 
   Init(glw);
 
   glw->EventLoop();
 
-  delete (glw);
-  return 0;
+  delete(glw);
+  return EXIT_SUCCESS;
 }

@@ -9,6 +9,8 @@
 
 namespace guts {
 
+// Represents an OpenGL uniform. This saves storing raw IDs in programs, and
+// allows a more idiomatic API for C++.
 template<typename T>
 class GLUniform {
 
@@ -19,6 +21,8 @@ class GLUniform {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "NotImplementedFunctions"
+  // Sets the value of this uniform. This is only defined on supported types;
+  // see uniform.cc for a full list.
   void Set(T &val);
 #pragma clang diagnostic pop
 

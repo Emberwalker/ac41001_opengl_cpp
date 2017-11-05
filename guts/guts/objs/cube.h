@@ -9,6 +9,8 @@
 namespace guts {
 namespace objs {
 
+// An OpenGL cube. Essentially identical to Iain Martin's cube class, but
+// adjusted to fit into the GUTS hierarchy.
 class Cube : public GLObject {
 
  public:

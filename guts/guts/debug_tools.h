@@ -8,6 +8,7 @@
 
 namespace guts {
 
+// Used internally by PrintOpenGLErrors.
 // Based on https://stackoverflow.com/a/378165
 class OGLStackReporter {
  public:
@@ -23,9 +24,13 @@ class OGLStackReporter {
 
 };
 
+// Prints out all the current OpenGL errors in the context. Includes file/line
+// and calling function in the error message. That allows you to just
+// scatter-shot these statements everywhere there *might* be an issue.
 #undef PrintOpenGLErrors
 #define PrintOpenGLErrors OGLStackReporter(__FUNCTION__,__FILE__,__LINE__)
 
+// Internal. Used by the guts_assert macro.
 void __GutsAssert(const std::string &fn, const std::string &file, int ln,
                   bool condition, const std::string &msg);
 
@@ -35,9 +40,12 @@ void __GutsAssert(const std::string &fn, const std::string &file, int ln,
 #undef __unused
 #define __unused __attribute__((unused))
 
+// Custom assertion method that includes a message, and tells you exactly where
+// something failed an assertion.
 #undef guts_assert
 #define guts_assert(condition, msg) guts::__GutsAssert(__FUNCTION__,__FILE__,__LINE__, condition, msg)
 
+// Handy little macro for marking things that aren't quite finished yet.
 #undef NOT_IMPLEMENTED
 #define NOT_IMPLEMENTED { guts::__GutsAssert(__FUNCTION__,__FILE__,__LINE__, false, "Not implemented."); }
 

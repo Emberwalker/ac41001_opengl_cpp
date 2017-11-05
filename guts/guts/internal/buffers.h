@@ -7,7 +7,7 @@
 namespace guts {
 namespace internal {
 
-//inline GLuint GenBuffer(GLfloat *contents, GLsizei size) {
+// Generates a new buffer of floats and returns the GL ID for it.
 inline GLuint GenBuffer(const std::vector<GLfloat> &contents) {
   GLuint buffer;
   auto size = static_cast<GLsizei>(contents.size());
@@ -19,6 +19,7 @@ inline GLuint GenBuffer(const std::vector<GLfloat> &contents) {
   return buffer;
 }
 
+// Generates a new buffer of elements and returns the GL ID for it.
 inline GLuint GenElementBuffer(const std::vector<GLuint> &contents) {
   GLuint buffer;
   auto size = static_cast<GLsizei>(contents.size());

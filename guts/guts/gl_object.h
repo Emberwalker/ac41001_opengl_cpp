@@ -9,10 +9,13 @@ enum GLRenderMode {
   RENDER_POINTS = 2
 };
 
+// Gets the next render mode after this one.
 GLRenderMode NextRenderMode(GLRenderMode mode);
 
 namespace objs {
 
+// Represents an abstract OpenGL renderable object. Base class for all the
+// classes in guts::objs (guts/objs/*.h)
 class GLObject {
 
  public:

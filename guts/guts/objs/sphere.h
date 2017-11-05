@@ -8,6 +8,8 @@
 namespace guts {
 namespace objs {
 
+// An OpenGL sphere. Essentially identical to Iain Martin's sphere class, but
+// adjusted to fit into the GUTS hierarchy.
 class Sphere : public GLObject {
 
  public:

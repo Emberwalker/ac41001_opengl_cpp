@@ -8,6 +8,8 @@
 namespace guts {
 namespace objs {
 
+// The tube is a specialisation of ExtrudedObject, which creates tubes by
+// generating a unit circle and extruding it. Resolution is user-specified.
 class Tube : public GLObject {
 
  public:

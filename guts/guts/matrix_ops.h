@@ -5,6 +5,7 @@
 
 namespace guts {
 
+// Lazy shorthand for doing inverse transposes with GLM.
 inline glm::mat3 InverseTranspose(glm::mat3 matrix) {
   return glm::transpose(glm::inverse(matrix));
 }
