@@ -16,6 +16,7 @@
 #include <memory>
 #include <stack>
 #include <cmath>
+#include <algorithm>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -34,9 +35,9 @@ inline UniformPtr<T> GetNewUniform(GLuint program, const std::string &name) {
 }
 
 // Useful constants
-constexpr glm::vec3 AXIS_X = glm::vec3(1, 0, 0);
-constexpr glm::vec3 AXIS_Y = glm::vec3(0, 1, 0);
-constexpr glm::vec3 AXIS_Z = glm::vec3(0, 0, 1);
+glm::vec3 AXIS_X = glm::vec3(1, 0, 0);
+glm::vec3 AXIS_Y = glm::vec3(0, 1, 0);
+glm::vec3 AXIS_Z = glm::vec3(0, 0, 1);
 const float VIEW_INC = 0.05f;
 glm::vec4 PART_COLOUR = glm::vec4(1, 1, 1, 1);
 

@@ -31,7 +31,7 @@ endif ()
 
 # Platform
 set(LIB_PATH "")
-set(OTHER_LIBS glload glfw3 boost_exception boost_filesystem boost_system)
+set(OTHER_LIBS glload glfw3)
 foreach (_LIB ${OTHER_LIBS})
     set(REL_DBG_LIBS ${REL_DBG_LIBS} debug "${_LIB}D" optimized ${_LIB})
 endforeach ()

@@ -38,7 +38,12 @@ void __GutsAssert(const std::string &fn, const std::string &file, int ln,
 
 // Prepend a parameter with __unused to silence 'unused parameter' warnings.
 #undef __unused
+#ifdef _MSC_VER // MSVC
+// Windows doesn't like this.
+#define __unused
+#else
 #define __unused __attribute__((unused))
+#endif // _MSC_VER
 
 // Custom assertion method that includes a message, and tells you exactly where
 // something failed an assertion.
