@@ -34,6 +34,7 @@ class GlfwWindow {
   void SetRenderer(GlfwWindowRenderFunc fn);
   void EventLoop();
   void SetWindowShouldClose(bool window_should_close);
+  double GlfwTimer();
 
   // Gets the raw window that this object represents. DO NOT USE UNLESS
   // ABSOLUTELY NEEDED! Prefer to use other methods on this object.

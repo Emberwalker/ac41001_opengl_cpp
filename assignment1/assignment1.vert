@@ -16,7 +16,7 @@ out vec3 N, L, V, frag_position;
 // These are the uniforms that are defined in the application
 uniform mat4 model, view, projection;
 uniform mat3 normalmatrix;
-uniform uint colourmode, emitmode;
+uniform uint colourmode, emitmode, lightmode;
 uniform vec4 lightpos;
 
 // Global constants (for this vertex shader)

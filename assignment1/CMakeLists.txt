@@ -1,5 +1,8 @@
 set(AS1_SRCS
-        assignment1.cpp)
+        assignment1.cpp
+        assignment1_pumpjack_head.inl
+        assignment1_a_frame.inl
+        assignment1_counterweight.inl)
 set(AS1_SHADERS
         assignment1.frag
         assignment1.vert)

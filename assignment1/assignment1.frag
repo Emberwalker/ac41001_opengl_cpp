@@ -9,12 +9,13 @@ out vec4 outputColor;
 
 uniform uint colourmode;
 uniform uint emitmode;
+uniform uint lightmode;
 
 // Constants
 vec3 global_ambient = vec3(0.05, 0.05, 0.05);
 vec3 specular_albedo = vec3(1.0, 0.8, 0.6);
 float ambient_multiplier = 0.4;
-float attenuation_k = 1.0;
+float attenuation_k = 0.5;
 int shininess = 8;
 
 void main() {
@@ -42,5 +43,9 @@ void main() {
     vec3 emissive = vec3(0);
     if (emitmode == 1) emissive = vec3(1, 1, 0.8);
 
-	outputColor = vec4(attenuation * (ambient + diffuse + specular) + emissive + global_ambient, 1.0);
+    if (lightmode == 0) {
+	    outputColor = vec4(attenuation * (ambient + diffuse + specular) + emissive + global_ambient, 1.0);
+    } else if (lightmode == 1) {
+        outputColor = vec4(ambient + diffuse + specular + emissive + global_ambient, 1.0);
+    }
 }

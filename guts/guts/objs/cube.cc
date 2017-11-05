@@ -135,7 +135,7 @@ constexpr std::array<GLfloat, 78> TMPL_TEX = {
 };
 } // namespace
 
-Cube::Cube(bool textured, GLuint attr_vertices, GLuint attr_colours_or_tex,
+Cube::Cube(bool textured, glm::vec4 *override_colour, GLuint attr_vertices, GLuint attr_colours_or_tex,
            GLuint attr_normals) {
   guts::PrintOpenGLErrors();
   this->attr_vertices = attr_vertices;
@@ -150,6 +150,17 @@ Cube::Cube(bool textured, GLuint attr_vertices, GLuint attr_colours_or_tex,
   if (textured) {
     this->colours_or_tex = std::vector<GLfloat>(TMPL_TEX.begin(),
                                                 TMPL_TEX.end());
+  } else if (override_colour) {
+    std::vector<GLfloat> colours;
+    auto vertex_count = vertices.size() / 3;
+    colours.reserve(vertex_count * 4);
+    for (int i = 0; i < vertex_count; i++) {
+      colours.push_back(override_colour->r);
+      colours.push_back(override_colour->g);
+      colours.push_back(override_colour->b);
+      colours.push_back(override_colour->a);
+    }
+    this->colours_or_tex = colours;
   } else {
     this->colours_or_tex = std::vector<GLfloat>(TMPL_COLOURS.begin(),
                                                 TMPL_COLOURS.end());

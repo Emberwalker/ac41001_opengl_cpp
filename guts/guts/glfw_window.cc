@@ -74,6 +74,10 @@ void GlfwWindow::SetWindowShouldClose(bool window_should_close) {
   glfwSetWindowShouldClose(this->window, window_should_close);
 }
 
+double GlfwWindow::GlfwTimer() {
+  return glfwGetTime();
+}
+
 GLFWwindow *GlfwWindow::GetRawWindow() {
   return this->window;
 }
