@@ -34,6 +34,11 @@ class OGLStackReporter {
 void __GutsAssert(const std::string &fn, const std::string &file, int ln,
                   bool condition, const std::string &msg);
 
+// Internal. Used by the guts_assert macro.
+[[noreturn]]
+void __GutsError(const std::string &fn, const std::string &file, int ln,
+                 const std::string &msg);
+
 } // namespace guts
 
 // Prepend a parameter with __unused to silence 'unused parameter' warnings.
@@ -49,6 +54,11 @@ void __GutsAssert(const std::string &fn, const std::string &file, int ln,
 // something failed an assertion.
 #undef guts_assert
 #define guts_assert(condition, msg) guts::__GutsAssert(__FUNCTION__,__FILE__,__LINE__, condition, msg)
+
+// Error method for probably-never-happen type issues. Unlike guts_assert, this
+// is marked as non-returning. Equivalent to calling guts_assert(false, "...");
+#undef guts_error
+#define guts_error(msg) guts::__GutsError(__FUNCTION__,__FILE__,__LINE__, msg)
 
 // Handy little macro for marking things that aren't quite finished yet.
 #undef NOT_IMPLEMENTED

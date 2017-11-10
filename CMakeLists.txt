@@ -31,10 +31,7 @@ endif ()
 
 # Platform
 set(LIB_PATH "")
-set(OTHER_LIBS glload glfw3)
-foreach (_LIB ${OTHER_LIBS})
-    set(REL_DBG_LIBS ${REL_DBG_LIBS} debug "${_LIB}D" optimized ${_LIB})
-endforeach ()
+set(OTHER_LIBS glload glfw3 png16 z)
 set(NO_ADD_LIB_PATH FALSE)
 
 if (APPLE)
@@ -50,7 +47,7 @@ if (APPLE)
         message(FATAL_ERROR "Use Clang on macOS devices!")
     endif ()
 elseif (WIN32)
-    set(ADDITIONAL_LIBRARIES ${REL_DBG_LIBS} ${ADDITIONAL_LIBRARIES})
+    set(ADDITIONAL_LIBRARIES ${OTHER_LIBS} ${ADDITIONAL_LIBRARIES})
     if (MSYS OR MINGW)
         # UNIX-y in MSYS/MinGW
         set(LIB_PATH mingw)
@@ -61,7 +58,7 @@ elseif (WIN32)
 elseif (UNIX)
     # Probably Linux? Assume it is. We're not mad enough to try and support Sun et al.
     #set(LIB_PATH linux)
-    #set(ADDITIONAL_LIBRARIES ${OTHER_LIBS} ${ADDITIONAL_LIBRARIES})
+    set(ADDITIONAL_LIBRARIES ${OTHER_LIBS} ${ADDITIONAL_LIBRARIES})
     # TODO: Compile linux32/64 libs. Until then, use system libs.
     SET(NO_ADD_LIB_PATH TRUE)
 else ()

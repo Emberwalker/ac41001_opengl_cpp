@@ -67,6 +67,13 @@ bool OGLStackReporter::operator()() {
 void __GutsAssert(const std::string &fn, const std::string &file, int ln,
                   bool condition, const std::string &msg) {
   if (condition) return;
+  __GutsError(fn, file, ln, msg);
+}
+
+void __GutsError(const std::string &fn,
+                 const std::string &file,
+                 int ln,
+                 const std::string &msg) {
   std::cerr << "[" << file << ":"
             << ln << "] "
             << "Assertion failure in " << fn

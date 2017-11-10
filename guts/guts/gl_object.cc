@@ -13,7 +13,7 @@ GLRenderMode NextRenderMode(GLRenderMode mode) {
     case RENDER_POINTS:
       return RENDER_NORMAL;
     default:
-      guts_assert(false, "Invalid enum value for GLRenderMode!");
+      guts_error("Invalid enum value for GLRenderMode!");
   }
 }
 

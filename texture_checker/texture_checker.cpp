@@ -9,6 +9,7 @@
 /* Include the header to the GLFW wrapper class which
    also includes the OpenGL extension initialisation*/
 #include <guts/guts.h>
+#include <guts/gl_texture.h>
 #include <guts/objs/cube.h>
 #include <iostream>
 #include <memory>
@@ -48,6 +49,7 @@ GLfloat
     aspect_ratio;        /* Aspect ratio of the window defined in the reshape callback*/
 
 std::unique_ptr<guts::objs::Cube> cube;
+std::unique_ptr<guts::GLTexture> tex1;
 
 /*
 This function is called before entering the main rendering loop.
@@ -144,6 +146,8 @@ void init(guts::GlfwWindow *glw) {
   gl::EnableVertexAttribArray(1);
   gl::EnableVertexAttribArray(2);*/
 
+  // Disable the old stuff
+#if 0
   // Generate the texture object, obtaining a texture ID for the 2D texture object
   gl::GenTextures(1, &texID);
   gl::BindTexture(gl::TEXTURE_2D, texID);
@@ -192,12 +196,15 @@ void init(guts::GlfwWindow *glw) {
 
   // This is the location of the texture object (TEXTURE0), i.e. tex1 will be the name
   // of the sampler in the fragment shader
-  int loc = gl::GetUniformLocation(program, "tex1");
+  //int loc = gl::GetUniformLocation(program, "tex1");
   //if (loc >= 0) gl::Uniform1i(loc, 0);
 
   guts::PrintOpenGLErrors();
+#endif
 
   cube = std::make_unique<guts::objs::Cube>(true, nullptr, 0, 2, 1);
+  tex1 = std::make_unique<guts::GLTexture>(program, "tex1", "asteroid.png");
+  tex1->SetDefaultParameters();
 }
 
 /* Called to update the display. Note that this function is called in the event loop in the wrapper
@@ -249,9 +256,10 @@ void display(guts::GlfwWindow *window) {
   gl::UniformMatrix4fv(projectionID, 1, gl::FALSE_, &Projection[0][0]);
 
   /* Draw our textured quad*/
-  gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-  gl::BindTexture(gl::TEXTURE_2D, texID);
+  //gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+  //gl::BindTexture(gl::TEXTURE_2D, texID);
   //gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
+  tex1->BindTexture();
   cube->Render(drawmode);
 
   /* Modify our animation variables */
