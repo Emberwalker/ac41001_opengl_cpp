@@ -21,6 +21,7 @@ class Cube : public GLObject {
   void Render(GLRenderMode mode) override;
 
  private:
+  bool textured;
   GLuint vbo, c_t_bo, nbo;
   GLuint attr_vertices, attr_colours_or_tex, attr_normals;
   std::vector<GLfloat> vertices, colours_or_tex, normals;

@@ -106,32 +106,41 @@ constexpr std::array<GLfloat, 144> TMPL_COLOURS = {
 constexpr std::array<GLfloat, 108> TMPL_NORMALS = {
     0, 0, -1.f, 0, 0, -1.f, 0, 0, -1.f,
     0, 0, -1.f, 0, 0, -1.f, 0, 0, -1.f,
+
     1.f, 0, 0, 1.f, 0, 0, 1.f, 0, 0,
     1.f, 0, 0, 1.f, 0, 0, 1.f, 0, 0,
+
     0, 0, 1.f, 0, 0, 1.f, 0, 0, 1.f,
     0, 0, 1.f, 0, 0, 1.f, 0, 0, 1.f,
+
     -1.f, 0, 0, -1.f, 0, 0, -1.f, 0, 0,
     -1.f, 0, 0, -1.f, 0, 0, -1.f, 0, 0,
+
     0, -1.f, 0, 0, -1.f, 0, 0, -1.f, 0,
     0, -1.f, 0, 0, -1.f, 0, 0, -1.f, 0,
+
     0, 1.f, 0, 0, 1.f, 0, 0, 1.f, 0,
     0, 1.f, 0, 0, 1.f, 0, 0, 1.f, 0,
 };
 
-constexpr std::array<GLfloat, 78> TMPL_TEX = {
+constexpr std::array<GLfloat, 72> TMPL_TEX = {
     0, 1.f, 0, 0, 1.f, 0,
     1.f, 0, 1.f, 1.f, 0, 1.f,
-    1.f, 0, 1.f, 0, 1.f, 1.f,
+
     0, 0, 0, 1.f, 1.f, 0,
-    0, 1.f, 1.f, 1.f, 1.f, 0,
-    1.f, 0, 0, 0, 1.f, 1.f,
-    0, 0, 0, 1.f, 1.f, 1.f,
-    0, 1.f, 0, 0, 1.f, 1.f,
-    0, 0, 1.f, 0, 1.f, 1.f,
-    0, 1.f, 1.f, 1.f, 1.f, 0,
-    1.f, 0, 0, 0, 0, 1.f,
-    0, 0, 1.f, 0, 1.f, 1.f,
-    1.f, 1.f, 0, 1.f, 0, 0
+    1.f, 0, 1.f, 1.f, 0, 1.f,
+
+    0, 0, 0, 1.f, 1.f, 0,
+    1.f, 0, 1.f, 1.f, 0, 1.f,
+
+    0, 0, 0, 1.f, 1.f, 0,
+    1.f, 0, 1.f, 1.f, 0, 1.f,
+
+    0, 1.f, 0, 0, 1.f, 0,
+    1.f, 0, 1.f, 1.f, 0, 1.f,
+
+    0, 1.f, 0, 0, 1.f, 0,
+    1.f, 0, 1.f, 1.f, 0, 1.f,
 };
 } // namespace
 
@@ -141,6 +150,7 @@ Cube::Cube(bool textured, glm::vec4 *override_colour, GLuint attr_vertices, GLui
   this->attr_vertices = attr_vertices;
   this->attr_colours_or_tex = attr_colours_or_tex;
   this->attr_normals = attr_normals;
+  this->textured = textured;
 
   this->vertices = std::vector<GLfloat>(TMPL_VERTICES.begin(),
                                         TMPL_VERTICES.end());
@@ -180,9 +190,10 @@ Cube::~Cube() {
 
 void Cube::Render(GLRenderMode mode) {
   guts::PrintOpenGLErrors();
-  guts::internal::RenderBasicObject(mode, 36, this->vbo, this->attr_vertices,
-                                    this->c_t_bo, this->attr_colours_or_tex,
-                                    this->nbo, this->attr_normals);
+  GLuint c_tex_size = textured ? 2 : 4;
+  guts::internal::RenderBasicObject(mode, 36, this->vbo, this->attr_vertices, 3,
+                                    this->c_t_bo, this->attr_colours_or_tex, c_tex_size,
+                                    this->nbo, this->attr_normals, 3);
   guts::PrintOpenGLErrors();
 }
 

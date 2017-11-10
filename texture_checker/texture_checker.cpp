@@ -11,6 +11,7 @@
 #include <guts/guts.h>
 #include <guts/objs/cube.h>
 #include <iostream>
+#include <memory>
 
 /* Include GLM core and matrix extensions*/
 #include <glm/glm.hpp>
@@ -37,8 +38,7 @@ GLuint colourmode;    /* Index of a uniform to switch the colour mode in the ver
 /* Position and view globals */
 GLfloat angle_x, angle_inc_x, x, model_scale, z, y;
 GLfloat angle_y, angle_inc_y, angle_z, angle_inc_z;
-GLuint
-    drawmode;            // Defines drawing mode of sphere as points, lines or filled polygons
+guts::GLRenderMode drawmode = guts::RENDER_NORMAL;
 
 /* Uniforms*/
 GLint modelID, viewID, projectionID;
@@ -93,10 +93,10 @@ void init(guts::GlfwWindow *glw) {
 
   /* Create our quad and texture */
   /*gl::GenBuffers(1, &quad_vbo);
-  gl::BindBuffer(gl::ARRAY_BUFFER, quad_vbo);*/
+  gl::BindBuffer(gl::ARRAY_BUFFER, quad_vbo);
 
   // Create dat for our quad with vertices, normals and texturee coordinates
-  /*static const GLfloat quad_data[] =
+  static const GLfloat quad_data[] =
       {
           // Vertex positions
           0.75f, 0, -0.75f,
@@ -193,11 +193,11 @@ void init(guts::GlfwWindow *glw) {
   // This is the location of the texture object (TEXTURE0), i.e. tex1 will be the name
   // of the sampler in the fragment shader
   int loc = gl::GetUniformLocation(program, "tex1");
-  if (loc >= 0) gl::Uniform1i(loc, 0);
+  //if (loc >= 0) gl::Uniform1i(loc, 0);
 
   guts::PrintOpenGLErrors();
 
-  cube = std::make_unique<guts::objs::Cube>(true, 0, 2, 1);
+  cube = std::make_unique<guts::objs::Cube>(true, nullptr, 0, 2, 1);
 }
 
 /* Called to update the display. Note that this function is called in the event loop in the wrapper
@@ -249,9 +249,10 @@ void display(guts::GlfwWindow *window) {
   gl::UniformMatrix4fv(projectionID, 1, gl::FALSE_, &Projection[0][0]);
 
   /* Draw our textured quad*/
+  gl::BindBuffer(gl::ARRAY_BUFFER, 0);
   gl::BindTexture(gl::TEXTURE_2D, texID);
   //gl::DrawArrays(gl::TRIANGLE_FAN, 0, 4);
-  cube->Render(static_cast<guts::GLRenderMode>(drawmode));
+  cube->Render(drawmode);
 
   /* Modify our animation variables */
   angle_x += angle_inc_x;
@@ -292,15 +293,14 @@ static void keyCallback(GLFWwindow *window,
   if (key == 'B') z -= 0.05f;
   if (key == 'N') z += 0.05f;
 
-  if (key == 'M' && action != GLFW_PRESS) {
+  if (key == ',' && action != GLFW_PRESS) {
     colourmode = !colourmode;
     cout << "colourmode=" << colourmode << endl;
   }
 
   /* Cycle between drawing vertices, mesh and filled polygons */
-  if (key == 'N' && action != GLFW_PRESS) {
-    drawmode++;
-    if (drawmode > 2) drawmode = 0;
+  if (key == '.' && action != GLFW_PRESS) {
+    drawmode = guts::NextRenderMode(drawmode);
   }
 
 }

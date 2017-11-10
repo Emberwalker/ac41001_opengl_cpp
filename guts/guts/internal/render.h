@@ -20,13 +20,13 @@ inline void BindArrayBuffer(GLuint id, GLuint attr, GLuint len) {
 
 // Renders a basic object consisting of only triangles with no texture edges.
 inline void RenderBasicObject(GLRenderMode mode, int render_length,
-                              GLuint vbo, GLuint attr_vertices,
-                              GLuint cbo, GLuint attr_colours,
-                              GLuint nbo, GLuint attr_normals) {
+                              GLuint vbo, GLuint attr_vertices, GLuint v_size,
+                              GLuint cbo, GLuint attr_colours, GLuint c_size,
+                              GLuint nbo, GLuint attr_normals, GLuint n_size) {
   PrintOpenGLErrors();
-  BindArrayBuffer(vbo, attr_vertices, 3);
-  BindArrayBuffer(cbo, attr_colours, 4);
-  BindArrayBuffer(nbo, attr_normals, 3);
+  BindArrayBuffer(vbo, attr_vertices, v_size);
+  BindArrayBuffer(cbo, attr_colours, c_size);
+  BindArrayBuffer(nbo, attr_normals, n_size);
 
   gl::PointSize(3.f);
 
@@ -46,15 +46,14 @@ inline void RenderBasicObject(GLRenderMode mode, int render_length,
   PrintOpenGLErrors();
 }
 
-// Renders a basic object with texture coords.
 inline void RenderBasicObject(GLRenderMode mode, int render_length,
                               GLuint vbo, GLuint attr_vertices,
                               GLuint cbo, GLuint attr_colours,
-                              GLuint nbo, GLuint attr_normals,
-                              GLuint tbo, GLuint attr_texs) {
-  BindArrayBuffer(tbo, attr_texs, 2);
-  RenderBasicObject(mode, render_length, vbo, attr_vertices, cbo, attr_colours,
-                    nbo, attr_normals);
+                              GLuint nbo, GLuint attr_normals) {
+  RenderBasicObject(mode, render_length,
+                    vbo, attr_vertices, 3,
+                    cbo, attr_colours, 4,
+                    nbo, attr_normals, 3);
 }
 
 } // namespace internal
