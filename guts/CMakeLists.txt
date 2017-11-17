@@ -10,10 +10,13 @@ set(GUTS_H
         guts/debug_tools.h
         guts/matrix_ops.h
         guts/objs/extrusion.h
-        guts/uniform.h guts/internal/containers.h
+        guts/uniform.h
+        guts/internal/containers.h
         guts/objs/tube.h
         guts/tex/texture_loader.h
-        guts/tex/png_loader.h guts/gl_texture.h)
+        guts/tex/png_loader.h
+        guts/gl_texture.h
+        guts/gl_particle.h)
 set(GUTS_CPP
         guts/init.cc
         guts/glfw_window.cc
@@ -25,7 +28,10 @@ set(GUTS_CPP
         guts/debug_tools.cc
         guts/uniform.cc
         guts/objs/tube.cc
-        guts/tex/texture_loader.cc guts/tex/png_loader.cc guts/gl_texture.cc)
+        guts/tex/texture_loader.cc
+        guts/tex/png_loader.cc
+        guts/gl_texture.cc
+        guts/gl_particle.cc)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(guts
