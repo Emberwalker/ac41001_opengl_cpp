@@ -16,7 +16,7 @@ set(GUTS_H
         guts/tex/texture_loader.h
         guts/tex/png_loader.h
         guts/gl_texture.h
-        guts/gl_particle.h)
+        guts/gl_particle.h guts/objs/ltree.h)
 set(GUTS_CPP
         guts/init.cc
         guts/glfw_window.cc
@@ -31,7 +31,7 @@ set(GUTS_CPP
         guts/tex/texture_loader.cc
         guts/tex/png_loader.cc
         guts/gl_texture.cc
-        guts/gl_particle.cc)
+        guts/gl_particle.cc guts/objs/ltree.cc)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(guts

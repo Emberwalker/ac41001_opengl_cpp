@@ -21,14 +21,27 @@ class GLUniform {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "NotImplementedFunctions"
-  // Sets the value of this uniform. This is only defined on supported types;
+  virtual // Sets the value of this uniform. This is only defined on supported types;
   // see uniform.cc for a full list.
   void Set(T &val);
 #pragma clang diagnostic pop
 
- private:
+ protected:
+  // Blank ctor. Used for subclasses to do custom resolution (or dummying)
+  GLUniform() {
+    this->uniform_id = -1;
+  }
+
   GLint uniform_id;
 
+};
+
+// A fake uniform for if a certain uniform isn't in use e.g. for passing to draw
+// calls.
+template<typename T>
+class DummyUniform : GLUniform {
+  DummyUniform(): GLUniform() {};
+  void Set(T &val) override;
 };
 
 }

@@ -38,4 +38,9 @@ void GLUniform<glm::mat4>::Set(glm::mat4 &val) {
   gl::UniformMatrix4fv(this->uniform_id, 1, gl::FALSE_, &val[0][0]);
 }
 
+template<typename T>
+void DummyUniform::Set(T &val) {
+  return;
+}
+
 } // namespace guts
