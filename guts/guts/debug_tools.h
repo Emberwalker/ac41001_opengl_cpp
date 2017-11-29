@@ -62,6 +62,6 @@ void __GutsError(const std::string &fn, const std::string &file, int ln,
 
 // Handy little macro for marking things that aren't quite finished yet.
 #undef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED { guts::__GutsAssert(__FUNCTION__,__FILE__,__LINE__, false, "Not implemented."); }
+#define NOT_IMPLEMENTED { guts::__GutsError(__FUNCTION__,__FILE__,__LINE__, "Not implemented."); }
 
 #endif //GUTS_DEBUG_TOOLS_H

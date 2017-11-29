@@ -54,6 +54,39 @@ inline std::vector<float> ToComponents(std::vector<glm::vec4> &src) {
   return out;
 };
 
+inline std::string StringToLower(const std::string &str) {
+  std::string out = "";
+  out.reserve(str.length());
+  auto start = str.begin();
+  auto end = str.end();
+  for (auto iter = start; iter != end; iter++) {
+    out.push_back(static_cast<char>(std::tolower(*iter)));
+  }
+  return out;
+}
+
+inline std::string StringToUpper(const std::string &str) {
+  std::string out = "";
+  out.reserve(str.length());
+  auto start = str.begin();
+  auto end = str.end();
+  for (auto iter = start; iter != end; iter++) {
+    out.push_back(static_cast<char>(std::toupper(*iter)));
+  }
+  return out;
+}
+
+inline unsigned int StringCountCharacter(const char ch,
+                                         const std::string &str) {
+  unsigned int count = 0;
+  auto start = str.begin();
+  auto end = str.end();
+  for (auto iter = start; iter != end; iter++) {
+    if (ch == *iter) count += 1;
+  }
+  return count;
+}
+
 } // namespace internal
 } // namespace guts
 

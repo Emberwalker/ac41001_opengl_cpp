@@ -39,8 +39,8 @@ class GLUniform {
 // A fake uniform for if a certain uniform isn't in use e.g. for passing to draw
 // calls.
 template<typename T>
-class DummyUniform : GLUniform {
-  DummyUniform(): GLUniform() {};
+class DummyUniform : public GLUniform<T> {
+  DummyUniform(): GLUniform<T>::GLUniform() {};
   void Set(T &val) override;
 };
 

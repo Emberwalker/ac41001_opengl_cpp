@@ -39,7 +39,7 @@ void GLUniform<glm::mat4>::Set(glm::mat4 &val) {
 }
 
 template<typename T>
-void DummyUniform::Set(T &val) {
+void DummyUniform<T>::Set(T &val) {
   return;
 }
 

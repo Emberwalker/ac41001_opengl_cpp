@@ -1,6 +1,9 @@
 #ifndef GUTS_GL_OBJECT_H
 #define GUTS_GL_OBJECT_H
 
+#include "uniform.h"
+#include <stack>
+
 namespace guts {
 
 enum GLRenderMode {
@@ -20,6 +23,17 @@ class GLObject {
 
  public:
   virtual void Render(GLRenderMode mode) = 0;
+
+};
+
+class MultipartGLObject {
+
+ public:
+  virtual void Render(GLRenderMode mode,
+                      GLUniform<glm::mat4> &model_uniform,
+                      glm::mat4 &model_matrix,
+                      GLUniform<glm::mat3> &normal_uniform,
+                      glm::mat4 &view_matrix) = 0;
 
 };
 

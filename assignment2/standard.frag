@@ -15,7 +15,7 @@ uniform uint lightmode;
 vec3 global_ambient = vec3(0.05, 0.05, 0.05);
 vec3 specular_albedo = vec3(1.0, 0.8, 0.6);
 float ambient_multiplier = 0.4;
-float attenuation_k = 0.5;
+float attenuation_k = 0.1;
 int shininess = 8;
 
 void main() {

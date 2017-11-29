@@ -71,8 +71,8 @@ static void Init(__unused guts::GlfwWindow *window) {
 
   // Build the program
   guts::GLProgramBuilder builder;
-  builder.AddShader(gl::VERTEX_SHADER, "assignment1.vert");
-  builder.AddShader(gl::FRAGMENT_SHADER, "assignment1.frag");
+  builder.AddShader(gl::VERTEX_SHADER, "standard.vert");
+  builder.AddShader(gl::FRAGMENT_SHADER, "standard.frag");
   program_std = builder.BuildProgram();
 
   // Generate uniform objects
@@ -104,6 +104,20 @@ static void UpdateAndRender(const UniformPtr<glm::mat3> &u_normal_matrix,
   if (emitmode) mode = 1;
   u_emitmode->Set(mode);
   obj.Render(render_mode);
+  mode = 0;
+}
+
+// Updates all uniforms and then renders a given MultipartGLObject (e.g. LTrees)
+static void UpdateAndRender(const UniformPtr<glm::mat3> &u_normal_matrix,
+                            const UniformPtr<glm::mat4> &u_model,
+                            const UniformPtr<GLuint> &u_emitmode,
+                            glm::mat4 &view, glm::mat4 &model,
+                            guts::objs::MultipartGLObject &obj,
+                            bool emitmode = false) {
+  GLuint mode = 0;
+  if (emitmode) mode = 1;
+  u_emitmode->Set(mode);
+  obj.Render(render_mode, *model_uniform, model, *normal_matrix_uniform, view);
   mode = 0;
 }
 
@@ -143,6 +157,7 @@ static void Draw(const UniformPtr<glm::mat4> &u_model,
   // Tree
   model.push(model.top());
   {
+    model.top() = glm::scale(model.top(), glm::vec3(0.1f));
     UpdateAndRender(u_normal_matrix, u_model, u_emitmode, initial_view,
                     model.top(), *sample_tree, false);
   }
