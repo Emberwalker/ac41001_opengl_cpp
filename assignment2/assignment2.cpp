@@ -35,7 +35,7 @@ inline UniformPtr<T> GetNewUniform(GLuint program, const std::string &name) {
 }
 
 // ==== CONFIG ====
-//#define CONF_WORLD_TREE
+#define CONF_WORLD_TREE
 const unsigned int HOW_MANY_TREES = 10;
 const float WORLD_TREE_SCALE = 7.f;
 
@@ -173,8 +173,8 @@ static void Init(__unused guts::GlfwWindow *window) {
     position += glm::vec3(TERRAIN_OFFSET, 0.f, TERRAIN_OFFSET);
     position *= glm::vec3(TERRAIN_SCALE, 0.f, TERRAIN_SCALE);
     TreePosition pos = {
-        .pos = position,
-        .tree = tree_templates[tree_picker(twister)],
+        position,
+        tree_templates[tree_picker(twister)],
     };
     trees.push_back(pos);
   }
@@ -199,12 +199,12 @@ static void UpdateAndRender(const UniformPtr<glm::mat3> &u_normal_matrix,
 }
 
 // Updates all uniforms and then renders a given MultipartGLObject (e.g. LTrees)
-static void UpdateAndRender(const UniformPtr<glm::mat3> &u_normal_matrix,
-                            const UniformPtr<glm::mat4> &u_model,
-                            const UniformPtr<GLuint> &u_emitmode,
-                            glm::mat4 &view, glm::mat4 &model,
-                            guts::objs::MultipartGLObject &obj,
-                            bool emitmode = false) {
+static void UpdateAndRenderMultipart(const UniformPtr<glm::mat3> &u_normal_matrix,
+									 const UniformPtr<glm::mat4> &u_model,
+									 const UniformPtr<GLuint> &u_emitmode,
+									 glm::mat4 &view, glm::mat4 &model,
+									 guts::objs::MultipartGLObject &obj,
+									 bool emitmode = false) {
   GLuint mode = 0;
   if (emitmode) mode = 1;
   u_emitmode->Set(mode);
@@ -264,8 +264,8 @@ static void Draw(const UniformPtr<glm::mat4> &u_model,
     model.top() = glm::translate(model.top(), world_tree_pos);
     model.top() = glm::scale(model.top(), glm::vec3(TERRAIN_SCALE));
     model.top() = glm::scale(model.top(), glm::vec3(WORLD_TREE_SCALE));
-    UpdateAndRender(u_normal_matrix, u_model, u_emitmode, initial_view,
-                    model.top(), *world_tree, false);
+    UpdateAndRenderMultipart(u_normal_matrix, u_model, u_emitmode, initial_view,
+                             model.top(), *world_tree, false);
   }
   model.pop();
 #else
@@ -275,8 +275,8 @@ static void Draw(const UniformPtr<glm::mat4> &u_model,
       model.top() = glm::translate(model.top(), pos.pos);
       model.top() = glm::scale(model.top(), glm::vec3(TREE_SCALE));
       model.top() = glm::scale(model.top(), glm::vec3(TERRAIN_SCALE));
-      UpdateAndRender(u_normal_matrix, u_model, u_emitmode, initial_view,
-                      model.top(), *pos.tree, false);
+      UpdateAndRenderMultipart(u_normal_matrix, u_model, u_emitmode, initial_view,
+                               model.top(), *pos.tree, false);
     }
     model.pop();
   }
@@ -391,7 +391,7 @@ static void KeyCallback(GLFWwindow *window,
 
   if (key == '/' && action != GLFW_PRESS) {
     fogmode++;
-    if (fogmode > 3) fogmode = 0;
+    if (fogmode > 1) fogmode = 0;
   }
 }
 

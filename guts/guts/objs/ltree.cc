@@ -92,11 +92,11 @@ LTree::LTree(const std::string &production_pattern,
   // malformed production strings which pop more than push.
   std::stack<BranchStackFrame> branch_stack;
   branch_stack.push(BranchStackFrame {
-      .last_point = glm::vec3(0.f),
-      .angle_l = 0.f,
-      .angle_3d = 0.f,
-      .depth = 0,
-      .base_marker = true,
+      glm::vec3(0.f),
+      0.f,
+      0.f,
+      0,
+      true,
   });
 
   // RNGs used to vary branching in angle and 3D rotation
@@ -122,11 +122,11 @@ LTree::LTree(const std::string &production_pattern,
         glm::vec3 new_point = ProjectSegment(last_point, current_angle_l,
                                              current_angle_3d);
         auto segment = LTreeSegment{
-            .start = last_point,
-            .end = new_point,
-            .angle_l = current_angle_l,
-            .angle_3d = current_angle_3d,
-            .depth = depth,
+            last_point,
+            new_point,
+            current_angle_l,
+            current_angle_3d,
+            depth,
         };
         segments.push_back(segment);
         last_point = new_point;
@@ -148,10 +148,10 @@ LTree::LTree(const std::string &production_pattern,
       case '[': {
         // Push a stack frame.
         branch_stack.push(BranchStackFrame {
-            .last_point = last_point,
-            .angle_l = current_angle_l,
-            .angle_3d = current_angle_3d,
-            .depth = depth,
+            last_point,
+            current_angle_l,
+            current_angle_3d,
+            depth,
         });
         break;
       }
@@ -189,8 +189,8 @@ LTree::LTree(const std::string &production_pattern,
     transform = glm::rotate(transform, segment.angle_3d, AXIS_Y);
     transform = glm::rotate(transform, segment.angle_l, AXIS_Z);
     this->transforms.push_back(SegmentTransform {
-        .transform = transform,
-        .depth = segment.depth,
+        transform,
+        segment.depth,
     });
   }
 }
@@ -218,8 +218,8 @@ void LTree::Render(GLRenderMode mode,
         / static_cast<float>(max_depth);
     auto scaling_factor = glm::scale(glm::mat4(1.f),
                                      glm::vec3(1.f, scale, 1.f));
-    transform = model_matrix * transform;
-    transform *= scaling_factor * *this->component_matrix;
+    transform = model_matrix * transform
+        * scaling_factor * *this->component_matrix;
     glm::mat3 normal = InverseTranspose(glm::mat3(view_matrix * transform));
     model_uniform.Set(transform);
     normal_uniform.Set(normal);

@@ -1,4 +1,4 @@
-#include <bits/unique_ptr.h>
+#include <memory>
 #include "guts/gl_texture.h"
 #include "guts/debug_tools.h"
 #include "guts/tex/png_loader.h"

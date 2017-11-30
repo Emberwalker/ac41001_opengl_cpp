@@ -18,7 +18,6 @@ const float ambient_multiplier = 0.4;
 const float attenuation_k = 0.0001;
 const float fog_max = 100.0;
 const float fog_min = 1.0;
-const float fog_density = 0.9;
 const int shininess = 2;
 
 void main() {
@@ -53,23 +52,14 @@ void main() {
         shaded = vec4(ambient + diffuse + specular + emissive + global_ambient, 1.0);
     }
 
-    float fog_factor = 1.0;
-    float dist = length(P - viewpos);
     if (fogmode == 1) {
-        // Linear
+        // Linear fog
+        float fog_factor = 1.0;
+        float dist = length(P - viewpos);
         fog_factor = (fog_max - dist) / (fog_max - fog_min);
-    } else if (fogmode == 2) {
-        // Exponential
-        fog_factor = exp(dist * fog_density);
-    } else if (fogmode == 3) {
-        // Exponential squared
-        fog_factor = pow(dist * fog_density, 2.0);
-    }
-    fog_factor = clamp(fog_factor, 0.0, 1.0);
-
-    if (fogmode == 0) {
-        outputColor = shaded;
-    } else {
+        fog_factor = clamp(fog_factor, 0.0, 1.0);
         outputColor = mix(fogcolour, shaded, fog_factor);
+    } else {
+        outputColor = shaded;
     }
 }

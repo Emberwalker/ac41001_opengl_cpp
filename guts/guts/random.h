@@ -3,6 +3,7 @@
 
 #include <random>
 #include <ctime>
+#include <array>
 
 namespace guts {
 
@@ -13,7 +14,7 @@ inline std::mt19937 GetMT_RNG() {
   std::random_device rand_dev;
   std::array<long unsigned int, 2> init = {
       rand_dev(),
-      static_cast<long unsigned int>(time(0)),
+      static_cast<long unsigned int>(time(nullptr)),
   };
   std::seed_seq sseq(init.begin(), init.end());
   std::mt19937 rng(sseq);

@@ -49,6 +49,7 @@ from Win32.
 2. Add x64 config
 3. libnoise properties -> Configuration Type = Static library (.lib)
 4. Follow instructions from include dir makefile to get headers
+5. RENAME libnoise.lib to noise.lib!
 
 ## MinGW64
 

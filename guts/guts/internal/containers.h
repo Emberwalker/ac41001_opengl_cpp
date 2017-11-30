@@ -2,6 +2,7 @@
 #define GUTS_INTERNAL_CONTAINERS_H
 
 #include <vector>
+#include <cctype>
 #include <glm/glm.hpp>
 
 namespace guts {
