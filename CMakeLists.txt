@@ -31,7 +31,7 @@ endif ()
 
 # Platform
 set(LIB_PATH "")
-set(OTHER_LIBS glload glfw3 png16 z)
+set(OTHER_LIBS glload glfw3 png16 z noise)
 set(NO_ADD_LIB_PATH FALSE)
 
 if (APPLE)

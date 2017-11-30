@@ -41,6 +41,15 @@ from Win32.
 9. For both Win32 and x64, rename `zlib.lib` to `z.lib` so CMake picks it up properly.
 9. Grab `png.h` from the libpng archive root for include.
 
+### libnoise
+
+(Only the highlights are here, since short on time)
+
+1. Open libnoise solution in VS
+2. Add x64 config
+3. libnoise properties -> Configuration Type = Static library (.lib)
+4. Follow instructions from include dir makefile to get headers
+
 ## MinGW64
 
 _Note: MinGW 32-bit is untested as it would require a second install of MinGW to try out. I think?_
@@ -74,6 +83,10 @@ libpng needs zlib to work. MinGW seems to provide it, but for safety we'll build
 2. `./configure --enable-static`
 3. `mingw32-make` (optionally with `-j X` flag to use X jobs - good for multicore systems)
 4. Fetch `.libs/libpng16.a` and `png.h` for appropriate folders.
+
+### libnoise
+
+https://stackoverflow.com/a/13284455 - built artifacts in src/.lib
 
 ## Darwin64 (macOS)
 

@@ -13,11 +13,14 @@
 #include <guts/objs/cube.h>
 #include <guts/objs/sphere.h>
 #include <guts/objs/ltree.h>
+#include <guts/objs/terrain.h>
 
 #include <memory>
 #include <stack>
 #include <cmath>
 #include <algorithm>
+#include <random>
+#include <array>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -31,36 +34,69 @@ inline UniformPtr<T> GetNewUniform(GLuint program, const std::string &name) {
   return std::make_shared<guts::GLUniform<T>>(program, name);
 }
 
-// Useful constants
-glm::vec3 AXIS_X = glm::vec3(1, 0, 0);
-glm::vec3 AXIS_Y = glm::vec3(0, 1, 0);
-glm::vec3 AXIS_Z = glm::vec3(0, 0, 1);
-const float VIEW_INC = 0.05f;
+// ==== CONFIG ====
+//#define CONF_WORLD_TREE
+const unsigned int HOW_MANY_TREES = 10;
+const float WORLD_TREE_SCALE = 7.f;
 
-// based on https://stackoverflow.com/a/35651717
-template<typename T>
-T const PI = std::acos(-T(1));
+// Config END
+
+// Useful constants
+const float VIEW_INC = 0.1f;
+const float LIGHT_INC = 1.f;
+const float LIGHT_SCALE = 0.1f;
+const float TERRAIN_SCALE = 0.1f;
+const float TREE_SCALE = 1.f;
+const unsigned int TERRAIN_DIM = 1024;
+const float TERRAIN_OFFSET = -static_cast<float>(TERRAIN_DIM) / 2.f;
+const int TERRAIN_OFFSET_INT = -TERRAIN_DIM / 2;
+const std::array<std::string, 2> PRODUCTION_PATTERNS = {
+    "F[+F][-F+F]F[+F]",
+    "F[+F[-F]F]F[+F]",
+};
+const unsigned int MAX_LTREE_ITER = 3;
+const unsigned int MIN_LTREE_ITER = 2;
+const unsigned int TREE_TUBE_RES = 4;
+const unsigned int WORLD_TREE_TUBE_RES = 8;
+const unsigned int HOW_MANY_TREE_TEMPLATES = 5;
+
+glm::vec3 AXIS_X = glm::vec3(1, 0, 0); // NOLINT
+glm::vec3 AXIS_Y = glm::vec3(0, 1, 0); // NOLINT
+glm::vec3 AXIS_Z = glm::vec3(0, 0, 1); // NOLINT
+glm::vec4 FOG_COLOUR = glm::vec4(0.4f, 0.4f, 0.4f, 1.f); // NOLINT
+
+struct TreePosition {
+  glm::vec3 pos;
+  std::shared_ptr<guts::objs::LTree> tree;
+};
 
 // GL Globals
-GLuint program_std, program_show_normals, vao;
+GLuint program_std, vao;
 GLuint window_width = 640, window_height = 480;
-GLuint colourmode = 1, lightmode = 0;
+GLuint colourmode = 1, lightmode = 0, fogmode = 1;
 GLfloat aspect_ratio = 640.f / 480.f;
 GLfloat view_x = 0.f, view_y = 0.f, view_z = 0.f;
-GLfloat light_x = 0, light_y = 0, light_z = -3;
-guts::GLRenderMode render_mode = guts::RENDER_NORMAL;
-float time_period = 5.0;
+GLfloat target_x = 0.f, target_y = 0.f, target_z = 0.f;
+GLfloat light_x = 0, light_y = 20, light_z = 0;
+guts::GLRenderMode render_mode = guts::RENDER_POINTS;
+float time_period = 5.0, camera_zoom = 10.f;
+glm::vec3 world_tree_pos = glm::vec3(0.f); // NOLINT
 
 // GL Uniforms
 UniformPtr<glm::mat4> model_uniform, view_uniform,
     projection_uniform;
 UniformPtr<glm::mat3> normal_matrix_uniform;
-UniformPtr<GLuint> colour_mode_uniform, emit_mode_uniform, light_mode_uniform;
-UniformPtr<glm::vec4> light_pos_uniform;
+UniformPtr<GLuint> colour_mode_uniform, emit_mode_uniform, light_mode_uniform,
+    fog_mode_uniform;
+UniformPtr<glm::vec4> light_pos_uniform, fog_colour_uniform;
+UniformPtr<glm::vec3> view_pos_uniform;
 
 // Scene objects
-std::unique_ptr<guts::objs::LTree> sample_tree;
+std::unique_ptr<guts::objs::Terrain> terrain;
 std::unique_ptr<guts::objs::Sphere> light_sphere;
+std::unique_ptr<guts::objs::LTree> world_tree;
+std::vector<std::shared_ptr<guts::objs::LTree>> tree_templates;
+std::vector<TreePosition> trees;
 
 
 // Initialiser function.
@@ -83,11 +119,66 @@ static void Init(__unused guts::GlfwWindow *window) {
   colour_mode_uniform = GetNewUniform<GLuint>(program_std, "colourmode");
   emit_mode_uniform = GetNewUniform<GLuint>(program_std, "emitmode");
   light_mode_uniform = GetNewUniform<GLuint>(program_std, "lightmode");
+  fog_mode_uniform = GetNewUniform<GLuint>(program_std, "fogmode");
   light_pos_uniform = GetNewUniform<glm::vec4>(program_std, "lightpos");
+  fog_colour_uniform = GetNewUniform<glm::vec4>(program_std, "fogcolour");
+  view_pos_uniform = GetNewUniform<glm::vec3>(program_std, "viewpos");
 
   // Generate scene objects
-  sample_tree = std::make_unique<guts::objs::LTree>("F[+F][-F+F]F[+F]");
+  terrain = std::make_unique<guts::objs::Terrain>(TERRAIN_DIM, TERRAIN_DIM);
   light_sphere = std::make_unique<guts::objs::Sphere>(100, 100);
+
+  target_y = terrain->HeightAtPoint(
+      static_cast<unsigned int>(-TERRAIN_OFFSET_INT),
+      static_cast<unsigned int>(-TERRAIN_OFFSET_INT));
+  light_y += target_y;
+
+  std::mt19937 twister = guts::GetMT_RNG();
+#ifdef CONF_WORLD_TREE
+  std::uniform_int_distribution<int> pattern(0, static_cast<int>(
+      PRODUCTION_PATTERNS.size() - 1));
+
+  world_tree = std::make_unique<guts::objs::LTree>(
+      PRODUCTION_PATTERNS[pattern(twister)], MAX_LTREE_ITER,
+      WORLD_TREE_TUBE_RES);
+
+  std::vector<glm::vec3> candidate_locs =
+      terrain->GetPointsInZone(guts::objs::ZONE_GRASS);
+  std::uniform_int_distribution<int> point_picker(0, static_cast<int>(
+      candidate_locs.size()) - 1);
+  world_tree_pos = candidate_locs[point_picker(twister)];
+  world_tree_pos += glm::vec3(TERRAIN_OFFSET, 0.f, TERRAIN_OFFSET);
+  world_tree_pos *= glm::vec3(TERRAIN_SCALE, 0.f, TERRAIN_SCALE);
+#else
+  // Build tree templates
+  std::uniform_int_distribution<int> iterations(MIN_LTREE_ITER, MAX_LTREE_ITER);
+  std::uniform_int_distribution<int> pattern(0, static_cast<int>(
+      PRODUCTION_PATTERNS.size() - 1));
+  for (int i = 0; i < HOW_MANY_TREE_TEMPLATES; i++) {
+    std::string pattern_str = PRODUCTION_PATTERNS[pattern(twister)];
+    int iters = iterations(twister);
+    tree_templates.push_back(
+        std::make_shared<guts::objs::LTree>(pattern_str, iters, TREE_TUBE_RES));
+  }
+
+  // Plant trees
+  std::vector<glm::vec3> candidate_locs =
+      terrain->GetPointsInZone(guts::objs::ZONE_GRASS);
+  std::uniform_int_distribution<int> point_picker(0, static_cast<int>(
+      candidate_locs.size()) - 1);
+  std::uniform_int_distribution<int> tree_picker(0, static_cast<int>(
+      tree_templates.size()) - 1);
+  for (int i = 0; i < HOW_MANY_TREES; i++) {
+    glm::vec3 position = candidate_locs[point_picker(twister)];
+    position += glm::vec3(TERRAIN_OFFSET, 0.f, TERRAIN_OFFSET);
+    position *= glm::vec3(TERRAIN_SCALE, 0.f, TERRAIN_SCALE);
+    TreePosition pos = {
+        .pos = position,
+        .tree = tree_templates[tree_picker(twister)],
+    };
+    trees.push_back(pos);
+  }
+#endif
 }
 
 // Updates all uniforms and then renders a given GLObject.
@@ -137,7 +228,7 @@ static void Draw(const UniformPtr<glm::mat4> &u_model,
   std::stack<glm::mat4> model;
   model.push(glm::mat4(1.0));
 
-  glm::vec3 light_pos3 = glm::vec3(light_pos) / light_pos.z;
+  glm::vec3 light_pos3 = glm::vec3(light_pos) / light_pos.w;
 
   // Set constant uniforms
   u_view->Set(initial_view);
@@ -146,46 +237,75 @@ static void Draw(const UniformPtr<glm::mat4> &u_model,
   if (render_light_src) {
     model.push(model.top());
     {
+      model.top() = glm::scale(model.top(), glm::vec3(LIGHT_SCALE));
       model.top() = glm::translate(model.top(), light_pos3);
-      model.top() = glm::scale(model.top(), glm::vec3(0.05f, 0.05f, 0.05f));
       UpdateAndRender(u_normal_matrix, u_model, u_emitmode, initial_view,
                       model.top(), *light_sphere, true);
     }
     model.pop();
   }
 
-  // Tree
+  // Terrain
   model.push(model.top());
   {
-    model.top() = glm::scale(model.top(), glm::vec3(0.1f));
+    model.top() = glm::translate(model.top(),
+                                 glm::vec3(TERRAIN_OFFSET * TERRAIN_SCALE, 0.f,
+                                           TERRAIN_OFFSET * TERRAIN_SCALE));
+    model.top() = glm::scale(model.top(), glm::vec3(TERRAIN_SCALE));
     UpdateAndRender(u_normal_matrix, u_model, u_emitmode, initial_view,
-                    model.top(), *sample_tree, false);
+                    model.top(), *terrain, false);
   }
   model.pop();
+
+  // Trees
+#ifdef CONF_WORLD_TREE
+  model.push(model.top());
+  {
+    model.top() = glm::translate(model.top(), world_tree_pos);
+    model.top() = glm::scale(model.top(), glm::vec3(TERRAIN_SCALE));
+    model.top() = glm::scale(model.top(), glm::vec3(WORLD_TREE_SCALE));
+    UpdateAndRender(u_normal_matrix, u_model, u_emitmode, initial_view,
+                    model.top(), *world_tree, false);
+  }
+  model.pop();
+#else
+  for (TreePosition pos : trees) {
+    model.push(model.top());
+    {
+      model.top() = glm::translate(model.top(), pos.pos);
+      model.top() = glm::scale(model.top(), glm::vec3(TREE_SCALE));
+      model.top() = glm::scale(model.top(), glm::vec3(TERRAIN_SCALE));
+      UpdateAndRender(u_normal_matrix, u_model, u_emitmode, initial_view,
+                      model.top(), *pos.tree, false);
+    }
+    model.pop();
+  }
+#endif
+
+  if (model.size() != 1) {
+    guts_error("Imbalanced stack.");
+  }
 }
 
 // Rendering handler for GlfwWindow.
 static void Display(guts::GlfwWindow *window) {
-  gl::ClearColor(0, 0, 0, 1);
+  gl::ClearColor(FOG_COLOUR.r, FOG_COLOUR.g, FOG_COLOUR.b, 1.f);
   gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
   gl::Enable(gl::DEPTH_TEST);
   gl::UseProgram(program_std);
-
-  // Fetch the time from GLFW.
-  auto time = static_cast<float>(std::fmod(window->GlfwTimer(), time_period));
-  time /= time_period;
-
-  // For sin/cos/etc based transforms
-  float time_pi = time * 2 * PI<float>;
 
   // The GL transform stack.
   std::stack<glm::mat4> model;
   model.push(glm::mat4(1.0));
 
-  glm::mat4 projection = glm::perspective(glm::radians(30.f), aspect_ratio, 0.1f, 100.f);
+  glm::vec3 target = glm::vec3(target_x, target_y, target_z);
+  glm::vec3 camera = glm::vec3(camera_zoom);
+  camera += target;
+
+  glm::mat4 projection = glm::perspective(glm::radians(40.f), aspect_ratio, 0.1f, 500.f);
   glm::mat4 view = glm::lookAt(
-      glm::vec3(0,9,9),
-      glm::vec3(0,0,0),
+      camera,
+      target,
       glm::vec3(0,1,0)
   );
 
@@ -194,15 +314,16 @@ static void Display(guts::GlfwWindow *window) {
   view = glm::rotate(view, view_y, AXIS_Y);
   view = glm::rotate(view, view_z, AXIS_Z);
 
-  glm::vec4 light_pos = view * glm::vec4(light_x, light_y, light_z, 1.0);
-  glm::vec3 light_pos3 = glm::vec3(light_x, light_y, light_z);
+  glm::vec4 light_pos = glm::vec4(light_x, light_y, light_z, 1.0);
 
   // Set constant uniforms
-  //view_uniform->Set(view);
+  view_pos_uniform->Set(camera);
+  fog_colour_uniform->Set(FOG_COLOUR);
   projection_uniform->Set(projection);
   light_pos_uniform->Set(light_pos);
   colour_mode_uniform->Set(colourmode);
   light_mode_uniform->Set(lightmode);
+  fog_mode_uniform->Set(fogmode);
 
   Draw(model_uniform, view_uniform, view, normal_matrix_uniform,
        emit_mode_uniform, true, light_pos);
@@ -211,7 +332,7 @@ static void Display(guts::GlfwWindow *window) {
 }
 
 // GlfwWindow reshape handler.
-static void Reshape(GLFWwindow *window, int w, int h) {
+static void Reshape(__unused GLFWwindow *window, int w, int h) {
   gl::Viewport(0, 0, (GLsizei) w, (GLsizei) h);
   aspect_ratio = ((float) w / 640.f * 4.f) / ((float) h / 480.f * 3.f);
 }
@@ -231,12 +352,24 @@ static void KeyCallback(GLFWwindow *window,
   if (key == GLFW_KEY_S) view_y -= VIEW_INC;
   if (key == GLFW_KEY_E) view_z += VIEW_INC;
   if (key == GLFW_KEY_D) view_z -= VIEW_INC;
-  if (key == '1') light_x -= VIEW_INC;
-  if (key == '2') light_x += VIEW_INC;
-  if (key == '3') light_y -= VIEW_INC;
-  if (key == '4') light_y += VIEW_INC;
-  if (key == '5') light_z -= VIEW_INC;
-  if (key == '6') light_z += VIEW_INC;
+
+  if (key == GLFW_KEY_R) camera_zoom += LIGHT_INC;
+  if (key == GLFW_KEY_F) camera_zoom -= LIGHT_INC;
+
+  if (key == GLFW_KEY_Z) target_x += LIGHT_INC;
+  if (key == GLFW_KEY_X) target_x -= LIGHT_INC;
+  if (key == GLFW_KEY_C) target_y += LIGHT_INC;
+  if (key == GLFW_KEY_V) target_y -= LIGHT_INC;
+  if (key == GLFW_KEY_B) target_z += LIGHT_INC;
+  if (key == GLFW_KEY_N) target_z -= LIGHT_INC;
+
+  if (key == '1') light_x -= LIGHT_INC;
+  if (key == '2') light_x += LIGHT_INC;
+  if (key == '3') light_y -= LIGHT_INC;
+  if (key == '4') light_y += LIGHT_INC;
+  if (key == '5') light_z -= LIGHT_INC;
+  if (key == '6') light_z += LIGHT_INC;
+
   if (key == '=') time_period -= 1.f;
   if (key == '-') time_period += 1.f;
 
@@ -254,6 +387,11 @@ static void KeyCallback(GLFWwindow *window,
   if (key == '.' && action != GLFW_PRESS) {
     lightmode++;
     if (lightmode > 1) lightmode = 0;
+  }
+
+  if (key == '/' && action != GLFW_PRESS) {
+    fogmode++;
+    if (fogmode > 3) fogmode = 0;
   }
 }
 

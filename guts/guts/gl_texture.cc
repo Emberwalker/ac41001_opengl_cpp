@@ -38,6 +38,9 @@ GLTexture::GLTexture(GLuint program, const std::string &uniform_name,
 }
 
 void GLTexture::BindTexture() {
+  // TODO(arkan): Make this work for multitexturing
+  // ^ (glActiveTexture GL_TEXTURE0 + x)
+  // from https://www.khronos.org/opengl/wiki/Texture#Texture_image_units
   gl::BindTexture(gl::TEXTURE_2D, this->texture_id);
 }
 

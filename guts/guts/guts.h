@@ -14,5 +14,6 @@
 #include "uniform.h"
 #include "gl_particle.h"
 #include "gl_texture.h"
+#include "random.h"
 
 #endif //GUTS_H

@@ -4,6 +4,7 @@
 #include "guts/objs/tube.h"
 #include "guts/debug_tools.h"
 #include "guts/uniform.h"
+#include "guts/random.h"
 #include "guts/matrix_ops.h"
 #include "guts/internal/containers.h"
 #include <glm/gtc/matrix_transform.hpp>
@@ -99,8 +100,7 @@ LTree::LTree(const std::string &production_pattern,
   });
 
   // RNGs used to vary branching in angle and 3D rotation
-  std::random_device random_dev;
-  std::mt19937 twister(random_dev());
+  std::mt19937 twister = GetMT_RNG();
   // angle_l_dst for L-System branches, angle_3d_dst for movements in 3D space.
   std::normal_distribution<float> angle_l_dst(0.8f, 0.4f);
   std::uniform_real_distribution<float> angle_3d_dst(-1.5f, 1.5f);

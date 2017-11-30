@@ -43,11 +43,6 @@ class LTree: public MultipartGLObject {
               GLUniform<glm::mat3> &normal_uniform,
               glm::mat4 &view_matrix) override;
 
-  void RenderLines(GLUniform<glm::mat4> &model_uniform,
-                   glm::mat4 &model_matrix,
-                   GLUniform<glm::mat3> &normal_uniform,
-                   glm::mat4 &view_matrix);
-
  private:
   std::unique_ptr<GLObject> component;
   std::unique_ptr<glm::mat4> component_matrix;
