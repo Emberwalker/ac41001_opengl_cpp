@@ -22,13 +22,14 @@ inline void BindArrayBuffer(GLuint id, GLuint attr, GLuint len) {
 inline void RenderBasicObject(GLRenderMode mode, int render_length,
                               GLuint vbo, GLuint attr_vertices, GLuint v_size,
                               GLuint cbo, GLuint attr_colours, GLuint c_size,
-                              GLuint nbo, GLuint attr_normals, GLuint n_size) {
+                              GLuint nbo, GLuint attr_normals, GLuint n_size,
+                              bool use_normals = true, float point_size = 3.f) {
   PrintOpenGLErrors();
   BindArrayBuffer(vbo, attr_vertices, v_size);
   BindArrayBuffer(cbo, attr_colours, c_size);
-  BindArrayBuffer(nbo, attr_normals, n_size);
+  if (use_normals) BindArrayBuffer(nbo, attr_normals, n_size);
 
-  gl::PointSize(3.f);
+  gl::PointSize(point_size);
 
   if (mode == RENDER_WIREFRAME) {
     gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
@@ -49,11 +50,13 @@ inline void RenderBasicObject(GLRenderMode mode, int render_length,
 inline void RenderBasicObject(GLRenderMode mode, int render_length,
                               GLuint vbo, GLuint attr_vertices,
                               GLuint cbo, GLuint attr_colours,
-                              GLuint nbo, GLuint attr_normals) {
+                              GLuint nbo, GLuint attr_normals,
+                              bool use_normals = true, float point_size = 3.f) {
   RenderBasicObject(mode, render_length,
                     vbo, attr_vertices, 3,
                     cbo, attr_colours, 4,
-                    nbo, attr_normals, 3);
+                    nbo, attr_normals, 3,
+                    use_normals, point_size);
 }
 
 } // namespace internal

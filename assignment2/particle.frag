@@ -1,0 +1,60 @@
+// Minimal fragment shader
+
+#version 410 core
+
+in vec3 fcolour;
+in vec3 L, V, P, frag_position;
+
+out vec4 outputColor;
+
+uniform uint colourmode, emitmode, lightmode, fogmode;
+uniform vec3 viewpos;
+uniform vec4 fogcolour;
+
+// Constants
+const vec3 global_ambient = vec3(0.1, 0.1, 0.1);
+const vec3 specular_albedo = vec3(0.5, 0.5, 0.5);
+const float ambient_multiplier = 0.4;
+const float attenuation_k = 0.0001;
+const float fog_max = 100.0;
+const float fog_min = 1.0;
+const int shininess = 2;
+
+void main() {
+    vec3 diffuse_albedo;
+    if (colourmode == 1) {
+        diffuse_albedo = fcolour;
+    } else if (colourmode == 2) {
+        diffuse_albedo = vec3(clamp(frag_position, vec3(0.25), vec3(1.0)));
+    } else {
+        diffuse_albedo = vec3(1, 0, 0);
+    }
+
+    vec3 ambient = diffuse_albedo * ambient_multiplier;
+
+    float light_distance = length(L);
+    vec3 light_dir = normalize(L);
+    vec3 diffuse = diffuse_albedo;
+    float attenuation = 1.0 / (1.0 + attenuation_k * pow(light_distance, 2));
+
+    vec3 emissive = vec3(0);
+    if (emitmode == 1) emissive = vec3(1, 1, 0.8);
+
+    vec4 shaded;
+    if (lightmode == 0) {
+	    shaded = vec4(attenuation * (ambient + diffuse) + emissive + global_ambient, 1.0);
+    } else if (lightmode == 1) {
+        shaded = vec4(ambient + diffuse + emissive + global_ambient, 1.0);
+    }
+
+    if (fogmode == 1) {
+        // Linear fog
+        float fog_factor = 1.0;
+        float dist = length(P - viewpos);
+        fog_factor = (fog_max - dist) / (fog_max - fog_min);
+        fog_factor = clamp(fog_factor, 0.0, 1.0);
+        outputColor = mix(fogcolour, shaded, fog_factor);
+    } else {
+        outputColor = shaded;
+    }
+}

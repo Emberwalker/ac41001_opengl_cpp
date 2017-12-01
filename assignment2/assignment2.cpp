@@ -14,6 +14,7 @@
 #include <guts/objs/sphere.h>
 #include <guts/objs/ltree.h>
 #include <guts/objs/terrain.h>
+#include <guts/objs/particle_system.h>
 
 #include <memory>
 #include <stack>
@@ -36,8 +37,10 @@ inline UniformPtr<T> GetNewUniform(GLuint program, const std::string &name) {
 
 // ==== CONFIG ====
 #define CONF_WORLD_TREE
+//#define CONF_PARTICLE_SYSTEM
 const unsigned int HOW_MANY_TREES = 10;
 const float WORLD_TREE_SCALE = 7.f;
+const unsigned int HOW_MANY_PARTICLES_PER_TREE = 25;
 
 // Config END
 
@@ -59,42 +62,51 @@ const unsigned int MIN_LTREE_ITER = 2;
 const unsigned int TREE_TUBE_RES = 4;
 const unsigned int WORLD_TREE_TUBE_RES = 8;
 const unsigned int HOW_MANY_TREE_TEMPLATES = 5;
+const unsigned int PROGRAM_COUNT = 5;
 
 glm::vec3 AXIS_X = glm::vec3(1, 0, 0); // NOLINT
 glm::vec3 AXIS_Y = glm::vec3(0, 1, 0); // NOLINT
 glm::vec3 AXIS_Z = glm::vec3(0, 0, 1); // NOLINT
 glm::vec4 FOG_COLOUR = glm::vec4(0.4f, 0.4f, 0.4f, 1.f); // NOLINT
+glm::vec4 PARTICLE_COLOUR = glm::vec4(0.f, 0.8f, 0.1f, 1.f); // NOLINT
 
 struct TreePosition {
   glm::vec3 pos;
   std::shared_ptr<guts::objs::LTree> tree;
 };
 
+// based on https://stackoverflow.com/a/35651717
+template<typename T>
+T const PI = std::acos(-T(1));
+
 // GL Globals
-GLuint program_std, vao;
+GLuint program_std, program_particle, vao;
 GLuint window_width = 640, window_height = 480;
 GLuint colourmode = 1, lightmode = 0, fogmode = 1;
 GLfloat aspect_ratio = 640.f / 480.f;
 GLfloat view_x = 0.f, view_y = 0.f, view_z = 0.f;
 GLfloat target_x = 0.f, target_y = 0.f, target_z = 0.f;
 GLfloat light_x = 0, light_y = 20, light_z = 0;
-guts::GLRenderMode render_mode = guts::RENDER_POINTS;
+guts::GLRenderMode render_mode = guts::RENDER_NORMAL;
 float time_period = 5.0, camera_zoom = 10.f;
 glm::vec3 world_tree_pos = glm::vec3(0.f); // NOLINT
 
 // GL Uniforms
-UniformPtr<glm::mat4> model_uniform, view_uniform,
-    projection_uniform;
-UniformPtr<glm::mat3> normal_matrix_uniform;
-UniformPtr<GLuint> colour_mode_uniform, emit_mode_uniform, light_mode_uniform,
-    fog_mode_uniform;
-UniformPtr<glm::vec4> light_pos_uniform, fog_colour_uniform;
-UniformPtr<glm::vec3> view_pos_uniform;
+UniformPtr<glm::mat4> model_uniform[PROGRAM_COUNT], view_uniform[PROGRAM_COUNT],
+    projection_uniform[PROGRAM_COUNT];
+UniformPtr<glm::mat3> normal_matrix_uniform[PROGRAM_COUNT];
+UniformPtr<GLuint> colour_mode_uniform[PROGRAM_COUNT],
+    emit_mode_uniform[PROGRAM_COUNT], light_mode_uniform[PROGRAM_COUNT],
+    fog_mode_uniform[PROGRAM_COUNT];
+UniformPtr<glm::vec4> light_pos_uniform[PROGRAM_COUNT],
+    fog_colour_uniform[PROGRAM_COUNT];
+UniformPtr<glm::vec3> view_pos_uniform[PROGRAM_COUNT];
 
 // Scene objects
 std::unique_ptr<guts::objs::Terrain> terrain;
 std::unique_ptr<guts::objs::Sphere> light_sphere;
 std::unique_ptr<guts::objs::LTree> world_tree;
+std::unique_ptr<guts::objs::ParticleSystem> particles;
 std::vector<std::shared_ptr<guts::objs::LTree>> tree_templates;
 std::vector<TreePosition> trees;
 
@@ -105,28 +117,39 @@ static void Init(__unused guts::GlfwWindow *window) {
   gl::GenVertexArrays(1, &vao);
   gl::BindVertexArray(vao);
 
-  // Build the program
-  guts::GLProgramBuilder builder;
-  builder.AddShader(gl::VERTEX_SHADER, "standard.vert");
-  builder.AddShader(gl::FRAGMENT_SHADER, "standard.frag");
-  program_std = builder.BuildProgram();
+  // Build the programs
+  guts::GLProgramBuilder builder_std;
+  builder_std.AddShader(gl::VERTEX_SHADER, "standard.vert");
+  builder_std.AddShader(gl::FRAGMENT_SHADER, "standard.frag");
+  program_std = builder_std.BuildProgram();
+
+  guts::GLProgramBuilder builder_particle;
+  builder_particle.AddShader(gl::VERTEX_SHADER, "particle.vert");
+  builder_particle.AddShader(gl::FRAGMENT_SHADER, "particle.frag");
+  program_particle = builder_particle.BuildProgram();
 
   // Generate uniform objects
-  model_uniform = GetNewUniform<glm::mat4>(program_std, "model");
-  view_uniform = GetNewUniform<glm::mat4>(program_std, "view");
-  projection_uniform = GetNewUniform<glm::mat4>(program_std, "projection");
-  normal_matrix_uniform = GetNewUniform<glm::mat3>(program_std, "normalmatrix");
-  colour_mode_uniform = GetNewUniform<GLuint>(program_std, "colourmode");
-  emit_mode_uniform = GetNewUniform<GLuint>(program_std, "emitmode");
-  light_mode_uniform = GetNewUniform<GLuint>(program_std, "lightmode");
-  fog_mode_uniform = GetNewUniform<GLuint>(program_std, "fogmode");
-  light_pos_uniform = GetNewUniform<glm::vec4>(program_std, "lightpos");
-  fog_colour_uniform = GetNewUniform<glm::vec4>(program_std, "fogcolour");
-  view_pos_uniform = GetNewUniform<glm::vec3>(program_std, "viewpos");
+  for (int i = 0; i < PROGRAM_COUNT; i++) {
+    model_uniform[i] = GetNewUniform<glm::mat4>(program_std, "model");
+    view_uniform[i] = GetNewUniform<glm::mat4>(program_std, "view");
+    projection_uniform[i] = GetNewUniform<glm::mat4>(program_std, "projection");
+    normal_matrix_uniform[i] = GetNewUniform<glm::mat3>(program_std, "normalmatrix");
+    colour_mode_uniform[i] = GetNewUniform<GLuint>(program_std, "colourmode");
+    emit_mode_uniform[i] = GetNewUniform<GLuint>(program_std, "emitmode");
+    light_mode_uniform[i] = GetNewUniform<GLuint>(program_std, "lightmode");
+    fog_mode_uniform[i] = GetNewUniform<GLuint>(program_std, "fogmode");
+    light_pos_uniform[i] = GetNewUniform<glm::vec4>(program_std, "lightpos");
+    fog_colour_uniform[i] = GetNewUniform<glm::vec4>(program_std, "fogcolour");
+    view_pos_uniform[i] = GetNewUniform<glm::vec3>(program_std, "viewpos");
+  }
 
   // Generate scene objects
   terrain = std::make_unique<guts::objs::Terrain>(TERRAIN_DIM, TERRAIN_DIM);
   light_sphere = std::make_unique<guts::objs::Sphere>(100, 100);
+#ifdef CONF_PARTICLE_SYSTEM
+  particles = std::make_unique<guts::objs::ParticleSystem>(
+      HOW_MANY_PARTICLES_PER_TREE, 2, time_period, PARTICLE_COLOUR);
+#endif
 
   target_y = terrain->HeightAtPoint(
       static_cast<unsigned int>(-TERRAIN_OFFSET_INT),
@@ -208,7 +231,7 @@ static void UpdateAndRenderMultipart(const UniformPtr<glm::mat3> &u_normal_matri
   GLuint mode = 0;
   if (emitmode) mode = 1;
   u_emitmode->Set(mode);
-  obj.Render(render_mode, *model_uniform, model, *normal_matrix_uniform, view);
+  obj.Render(render_mode, *u_model, model, *u_normal_matrix, view);
   mode = 0;
 }
 
@@ -218,72 +241,10 @@ static T Clamp(T val, T min, T max) {
   return std::max(min, std::min(max, val));
 }
 
-static void Draw(const UniformPtr<glm::mat4> &u_model,
-                 const UniformPtr<glm::mat4> &u_view,
-                 glm::mat4 initial_view,
-                 const UniformPtr<glm::mat3> &u_normal_matrix,
-                 const UniformPtr<GLuint> &u_emitmode,
-                 bool render_light_src, glm::vec4 light_pos) {
-  // The GL transform stack.
-  std::stack<glm::mat4> model;
-  model.push(glm::mat4(1.0));
-
-  glm::vec3 light_pos3 = glm::vec3(light_pos) / light_pos.w;
-
-  // Set constant uniforms
-  u_view->Set(initial_view);
-
-  // Light source
-  if (render_light_src) {
-    model.push(model.top());
-    {
-      model.top() = glm::scale(model.top(), glm::vec3(LIGHT_SCALE));
-      model.top() = glm::translate(model.top(), light_pos3);
-      UpdateAndRender(u_normal_matrix, u_model, u_emitmode, initial_view,
-                      model.top(), *light_sphere, true);
-    }
-    model.pop();
-  }
-
-  // Terrain
-  model.push(model.top());
-  {
-    model.top() = glm::translate(model.top(),
-                                 glm::vec3(TERRAIN_OFFSET * TERRAIN_SCALE, 0.f,
-                                           TERRAIN_OFFSET * TERRAIN_SCALE));
-    model.top() = glm::scale(model.top(), glm::vec3(TERRAIN_SCALE));
-    UpdateAndRender(u_normal_matrix, u_model, u_emitmode, initial_view,
-                    model.top(), *terrain, false);
-  }
-  model.pop();
-
-  // Trees
-#ifdef CONF_WORLD_TREE
-  model.push(model.top());
-  {
-    model.top() = glm::translate(model.top(), world_tree_pos);
-    model.top() = glm::scale(model.top(), glm::vec3(TERRAIN_SCALE));
-    model.top() = glm::scale(model.top(), glm::vec3(WORLD_TREE_SCALE));
-    UpdateAndRenderMultipart(u_normal_matrix, u_model, u_emitmode, initial_view,
-                             model.top(), *world_tree, false);
-  }
-  model.pop();
-#else
-  for (TreePosition pos : trees) {
-    model.push(model.top());
-    {
-      model.top() = glm::translate(model.top(), pos.pos);
-      model.top() = glm::scale(model.top(), glm::vec3(TREE_SCALE));
-      model.top() = glm::scale(model.top(), glm::vec3(TERRAIN_SCALE));
-      UpdateAndRenderMultipart(u_normal_matrix, u_model, u_emitmode, initial_view,
-                               model.top(), *pos.tree, false);
-    }
-    model.pop();
-  }
-#endif
-
-  if (model.size() != 1) {
-    guts_error("Imbalanced stack.");
+template <typename T>
+static void UpdateUniforms(UniformPtr<T> uniform[PROGRAM_COUNT], T &value) {
+  for (int i = 0; i < PROGRAM_COUNT; i++) {
+    uniform[i]->Set(value);
   }
 }
 
@@ -317,16 +278,99 @@ static void Display(guts::GlfwWindow *window) {
   glm::vec4 light_pos = glm::vec4(light_x, light_y, light_z, 1.0);
 
   // Set constant uniforms
-  view_pos_uniform->Set(camera);
-  fog_colour_uniform->Set(FOG_COLOUR);
-  projection_uniform->Set(projection);
-  light_pos_uniform->Set(light_pos);
-  colour_mode_uniform->Set(colourmode);
-  light_mode_uniform->Set(lightmode);
-  fog_mode_uniform->Set(fogmode);
+  UpdateUniforms(view_pos_uniform, camera);
+  UpdateUniforms(fog_colour_uniform, FOG_COLOUR);
+  UpdateUniforms(projection_uniform, projection);
+  UpdateUniforms(light_pos_uniform, light_pos);
+  UpdateUniforms(colour_mode_uniform, colourmode);
+  UpdateUniforms(light_mode_uniform, lightmode);
+  UpdateUniforms(fog_mode_uniform, fogmode);
 
-  Draw(model_uniform, view_uniform, view, normal_matrix_uniform,
-       emit_mode_uniform, true, light_pos);
+  double time = window->GlfwTimer();// The GL transform stack.
+
+  glm::vec3 light_pos3 = glm::vec3(light_pos) / light_pos.w;
+
+  // Set constant uniforms
+  UpdateUniforms(view_uniform, view);
+  unsigned int program = 0;
+
+  // Light source
+  if (true) {
+    model.push(model.top());
+    {
+      model.top() = scale(model.top(), glm::vec3(LIGHT_SCALE));
+      model.top() = translate(model.top(), light_pos3);
+      UpdateAndRender(normal_matrix_uniform[0],
+                      model_uniform[0],
+                      emit_mode_uniform[0], view,
+                      model.top(), *light_sphere, true);
+    }
+    model.pop();
+  }
+
+  // Terrain
+  model.push(model.top());
+  {
+    model.top() = translate(model.top(),
+                                 glm::vec3(TERRAIN_OFFSET * TERRAIN_SCALE, 0.f,
+                                           TERRAIN_OFFSET * TERRAIN_SCALE));
+    model.top() = scale(model.top(), glm::vec3(TERRAIN_SCALE));
+    UpdateAndRender(normal_matrix_uniform[0],
+                    model_uniform[0],
+                    emit_mode_uniform[0], view,
+                    model.top(), *terrain, false);
+  }
+  model.pop();
+
+#ifdef CONF_PARTICLE_SYSTEM
+  particles->SetPeriod(time_period);
+  particles->SetTime(time);
+#endif
+
+  // Trees
+#ifdef CONF_WORLD_TREE
+  model.push(model.top());
+  {
+    model.top() = glm::translate(model.top(), world_tree_pos);
+    model.top() = glm::scale(model.top(), glm::vec3(TERRAIN_SCALE));
+    model.top() = glm::scale(model.top(), glm::vec3(WORLD_TREE_SCALE));
+    UpdateAndRenderMultipart(normal_matrix_uniform[0], model_uniform[0],
+                             emit_mode_uniform[0], view,
+                             model.top(), *world_tree, false);
+#ifdef CONF_PARTICLE_SYSTEM
+    gl::UseProgram(program_particle);
+    UpdateAndRender(normal_matrix_uniform[1], model_uniform[1],
+                    emit_mode_uniform[1], view,
+                    model.top(), *particles, false);
+#endif
+  }
+  model.pop();
+#else
+  for (TreePosition pos : trees) {
+    model.push(model.top());
+    {
+      model.top() = translate(model.top(), pos.pos);
+      model.top() = scale(model.top(), glm::vec3(TREE_SCALE));
+      model.top() = scale(model.top(), glm::vec3(TERRAIN_SCALE));
+      UpdateAndRenderMultipart(normal_matrix_uniform[0],
+                               model_uniform[0],
+                               emit_mode_uniform[0], view,
+                               model.top(), *pos.tree, false);
+#ifdef CONF_PARTICLE_SYSTEM
+      gl::UseProgram(program_particle);
+      UpdateAndRenderMultipart(normal_matrix_uniform[1],
+                               model_uniform[1],
+                               emit_mode_uniform[1], view,
+                               model.top(), *particles, false);
+#endif
+    }
+    model.pop();
+  }
+#endif
+
+  if (model.size() != 1) {
+    //guts_error("Imbalanced stack.");
+  }
 
   gl::UseProgram(0);
 }

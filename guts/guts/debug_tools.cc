@@ -58,7 +58,8 @@ bool OGLStackReporter::operator()() {
   std::vector<GLenum> errs = GetAllErrors();
   if (errs.empty()) return false;
   for (auto &err : errs) {
-    std::cerr << "[" << file_ << ":" << line_ << "] " << caller_ << "(): ";
+    std::cerr << "[" << file_ << ":" << std::dec << line_ << "] "
+              << caller_ << "(): ";
     PrintSingleError(err);
   }
   return true;

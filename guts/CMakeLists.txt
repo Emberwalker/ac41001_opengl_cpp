@@ -19,7 +19,7 @@ set(GUTS_H
         guts/gl_particle.h
         guts/objs/ltree.h
         guts/objs/terrain.h
-        guts/external/noiseutils.h guts/random.h)
+        guts/external/noiseutils.h guts/random.h guts/objs/particle_system.h)
 set(GUTS_CPP
         guts/init.cc
         guts/glfw_window.cc
@@ -37,7 +37,7 @@ set(GUTS_CPP
         guts/gl_particle.cc
         guts/objs/ltree.cc
         guts/objs/terrain.cc
-        guts/external/noiseutils.cpp)
+        guts/external/noiseutils.cpp guts/objs/particle_system.cc)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(guts

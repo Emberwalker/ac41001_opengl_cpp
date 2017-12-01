@@ -17,6 +17,7 @@ class GLUniform {
  public:
   GLUniform(GLuint program, const std::string &uniform_name) {
     this->uniform_id = gl::GetUniformLocation(program, uniform_name.c_str());
+    this->program = program;
   }
 
 #pragma clang diagnostic push
@@ -33,6 +34,7 @@ class GLUniform {
   }
 
   GLint uniform_id;
+  GLuint program;
 
 };
 
